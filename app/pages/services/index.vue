@@ -3,7 +3,7 @@ import { buildBreadcrumbSchema, buildOrganizationSchema, buildServicesSchema, bu
 
 const defaults = useSeoDefaults()
 const { resolveImageUrl } = useStrapi()
-const { services, pending, error } = useServices()
+const { services, pending, error } = await useServices()
 
 const servicesData = computed(() => services.value)
 const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || 'http://localhost:3000'
@@ -136,14 +136,10 @@ useJsonLd(computed(() => [
 <template>
   <main class="min-h-screen bg-[#f0f4f8] text-slate-900">
     <div class="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8" v-if="pending || error">
-      <p
+      <LoadingSpinner
         v-if="pending"
-        class="text-sm text-slate-600"
-        role="status"
-        aria-live="polite"
-      >
-        Loading Services page content...
-      </p>
+        label="Loading Services page content..."
+      />
       <div
         v-else-if="error"
         class="rounded-2xl border border-red-200 bg-red-50 p-5"

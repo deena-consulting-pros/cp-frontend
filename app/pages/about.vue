@@ -91,14 +91,10 @@ useJsonLd([organizationSchema, aboutPageSchema, breadcrumbSchema])
 <template>
   <main class="min-h-screen bg-[#f0f4f8] text-slate-900">
     <div class="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8" v-if="pending || error">
-      <p
+      <LoadingSpinner
         v-if="pending"
-        class="text-sm text-slate-600"
-        role="status"
-        aria-live="polite"
-      >
-        Loading About page content...
-      </p>
+        label="Loading About page content..."
+      />
       <p
         v-else-if="error"
         class="text-sm text-red-700"

@@ -600,7 +600,7 @@ const readStatusCode = (error: unknown) => {
   return source?.statusCode || source?.status || source?.response?.status || 0
 }
 
-export const useServices = () => {
+export const useServices = async () => {
   const { buildApiUrl, toMediaUrl } = useStrapi()
 
   const candidateEndpoints = [
@@ -614,7 +614,7 @@ export const useServices = () => {
   const resolvedEndpoint = ref(candidateEndpoints[0])
   const serviceCollectionEndpoint = buildApiUrl('/api/services?populate[featuredImage][populate]=*&populate[showcaseFeatures]=*&populate[showcaseButton]=*&sort[0]=order:asc')
 
-  const { data, pending, error } = useAsyncData<StrapiServicesPageResponse, Error | null>('services-page-content', async () => {
+  const pageDataAsync = useAsyncData<StrapiServicesPageResponse, Error | null>('services-page-content', async () => {
     let lastError: unknown = null
 
     for (const endpoint of candidateEndpoints) {
@@ -636,12 +636,17 @@ export const useServices = () => {
     default: () => ({ data: null })
   })
 
-  const { data: serviceCollectionData, pending: serviceCollectionPending, error: serviceCollectionError } = useAsyncData<StrapiServicesCollectionResponse, Error | null>('services-collection-content', async () => {
+  const collectionDataAsync = useAsyncData<StrapiServicesCollectionResponse, Error | null>('services-collection-content', async () => {
     return await $fetch<StrapiServicesCollectionResponse>(serviceCollectionEndpoint)
   }, {
     server: true,
     default: () => ({ data: [] })
   })
+
+  const [{ data, pending, error }, { data: serviceCollectionData, pending: serviceCollectionPending, error: serviceCollectionError }] = await Promise.all([
+    pageDataAsync,
+    collectionDataAsync
+  ])
 
   const services = computed<ServicesPageData>(() => normalizeServices(
     data.value || null,

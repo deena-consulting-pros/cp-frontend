@@ -99,11 +99,9 @@ useJsonLd([organizationSchema, websiteSchema, webPageSchema])
     <div class="mx-auto">
       <section
         v-if="pending"
-        class="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm"
-        role="status"
-        aria-live="polite"
+        class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
-        Loading homepage content...
+        <LoadingSpinner label="Loading homepage content..." />
       </section>
 
       <section
