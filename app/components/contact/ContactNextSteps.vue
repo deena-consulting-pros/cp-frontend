@@ -54,6 +54,7 @@ const visibleSteps = computed(() => {
 .next-step-card {
   border: 1px solid #e1e5e9;
   background: #ffffff;
+  overflow: hidden;
 }
 
 .step-chip {
