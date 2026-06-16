@@ -151,6 +151,7 @@ export interface StrapiAboutData {
   edgeHeading?: unknown
   edgeItems?: unknown[] | null
   edgeImage?: unknown
+  showHeroImage?: boolean | null
   approachHeading?: unknown
   approachSteps?: unknown[] | null
   expertsHeading?: unknown
@@ -202,6 +203,7 @@ export interface AboutData {
   edgeHeading: AboutSectionHeading
   edgeItems: AboutEdgeItem[]
   edgeImage: string
+  showHeroImage: boolean
   approachHeading: AboutSectionHeading
   approachSteps: AboutApproachStep[]
   expertsHeading: AboutSectionHeading

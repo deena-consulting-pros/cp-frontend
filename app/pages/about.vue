@@ -108,6 +108,7 @@ useJsonLd([organizationSchema, aboutPageSchema, breadcrumbSchema])
       v-else
       :hero="aboutData.hero"
       :cards="aboutHeroCards"
+      :show-hero-image="aboutData.showHeroImage"
     />
 
     <SectionShell

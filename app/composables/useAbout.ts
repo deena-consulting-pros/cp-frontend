@@ -516,6 +516,7 @@ const normalizeAbout = (response: StrapiAboutResponse | null, toMediaUrl: (url?:
     edgeHeading: normalizeEdgeHeading(entry.edgeHeading),
     edgeItems: normalizeEdgeItems(entry.edgeItems),
     edgeImage: toMediaUrl(readMediaUrl(entry.edgeImage as StrapiMedia | string | Record<string, unknown> | null)),
+    showHeroImage: entry.showHeroImage === true,
     approachHeading: normalizeApproachHeading(entry.approachHeading),
     approachSteps: normalizeApproachSteps(entry.approachSteps),
     expertsHeading: normalizeExpertsHeading(entry.expertsHeading),

@@ -7,8 +7,10 @@ type AboutHeroCard = AboutData['heroCards'][number]
 const props = withDefaults(defineProps<{
   hero: AboutHero
   cards?: AboutHeroCard[]
+  showHeroImage?: boolean
 }>(), {
-  cards: () => []
+  cards: () => [],
+  showHeroImage: true
 })
 const { resolveImageUrl } = useStrapi()
 
@@ -84,7 +86,10 @@ const cardMotionClass = (index: number) => {
       >
     </div>
 
-    <div class="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-20 sm:px-6 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 lg:py-28">
+    <div
+      class="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-20 sm:px-6 lg:items-center lg:gap-16 lg:px-10 lg:py-28"
+      :class="showHeroImage ? 'lg:grid lg:grid-cols-2' : ''"
+    >
       <div class="about-hero-reveal-left">
         <p
           v-if="hero.eyebrowText"
@@ -150,7 +155,7 @@ const cardMotionClass = (index: number) => {
         </div>
       </div>
 
-      <div class="about-hero-reveal-right relative mx-auto mt-12 w-full max-w-[37rem] lg:mt-0">
+      <div v-if="showHeroImage" class="about-hero-reveal-right relative mx-auto mt-12 w-full max-w-[37rem] lg:mt-0">
         <div class="about-hero-image-card relative w-full overflow-hidden rounded-[2rem] border border-white/60 bg-white/70 p-4 shadow-[0_34px_80px_rgba(8,26,39,0.16)] backdrop-blur-[14px] sm:p-5">
           <div class="relative h-[21rem] overflow-hidden rounded-[1.35rem] bg-[linear-gradient(155deg,#ebf7f0,#dce9f4)] sm:h-[25rem] lg:h-[29rem]">
             <img
