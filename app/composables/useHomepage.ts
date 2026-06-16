@@ -434,6 +434,57 @@ const normalizeTestimonialsHeading = (value: unknown) => {
   }
 }
 
+const normalizeFaqHeading = (value: unknown) => {
+  const source = typeof value === 'object' && value !== null
+    ? (value as RawRecord)
+    : {}
+
+  return {
+    label: pickText(source.label as string),
+    title: pickText(source.title as string),
+    subtitle: pickText(source.subtitle as string),
+    highlightText: pickText(source.highlightText as string),
+    alignment: pickText(source.alignment as string)
+  }
+}
+
+const normalizeFaqs = (value: unknown) => {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const mapped = value
+    .map((item, index) => {
+      const source = toRawRecord(item)
+      const orderSource = source.sortOrder ?? source.order
+      const parsedOrder = typeof orderSource === 'number'
+        ? orderSource
+        : (typeof orderSource === 'string' && orderSource.trim() ? Number(orderSource) : undefined)
+      const order = Number.isFinite(parsedOrder) ? parsedOrder : undefined
+
+      const faq = {
+        id: String((item as { id?: string | number })?.id ?? `homepage-faq-${index}`),
+        question: pickText(source.question as string),
+        answer: pickText(source.answer as string),
+        order
+      }
+
+      if (!faq.question || !faq.answer) {
+        return null
+      }
+
+      return faq
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+
+  const hasOrder = mapped.some((item) => typeof item.order === 'number')
+  if (!hasOrder) {
+    return mapped
+  }
+
+  return [...mapped].sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER))
+}
+
 const normalizeTestimonials = (value: unknown, toMediaUrl: (url?: string | null) => string) => {
   if (!Array.isArray(value)) {
     return []
@@ -494,6 +545,19 @@ const normalizeHomepage = (response: StrapiHomepageResponse | null, toMediaUrl: 
   const whyChooseBackgroundImageUrl = toMediaUrl(readMediaUrl(entry.whyChooseBackgroundImage))
   const processSteps = normalizeProcessSteps(entry.processSteps)
   const hasProcessOrder = processSteps.some((step) => typeof step.order === 'number')
+  const testimonials = normalizeTestimonials(entry.testimonials, toMediaUrl)
+  const faqSectionValue = entry.faqSection
+  const faqHeading = normalizeFaqHeading(
+    entry.faqHeading
+    || entry.frequentlyAskedQuestionsHeading
+    || (!Array.isArray(faqSectionValue) ? faqSectionValue : undefined)
+  )
+  const faqs = normalizeFaqs(
+    entry.faqs
+    || entry.faqItems
+    || (Array.isArray(faqSectionValue) ? faqSectionValue : undefined)
+    || entry.frequentlyAskedQuestions
+  )
 
   return {
     hero: {
@@ -589,7 +653,9 @@ const normalizeHomepage = (response: StrapiHomepageResponse | null, toMediaUrl: 
     portfolioButton: normalizePortfolioButton(entry.portfolioButton),
     portfolioItems: normalizePortfolioItems(entry.portfolioItems, toMediaUrl),
     testimonialsHeading: normalizeTestimonialsHeading(entry.testimonialsHeading),
-    testimonials: normalizeTestimonials(entry.testimonials, toMediaUrl),
+    testimonials,
+    faqHeading,
+    faqs,
     seo: {
       metaTitle: pickText(seo.metaTitle),
       metaDescription: pickText(seo.metaDescription),
@@ -616,7 +682,7 @@ const readStatusCode = (error: unknown) => {
 export const useHomepage = async () => {
   const { buildApiUrl, toMediaUrl } = useStrapi()
   const candidateEndpoints = [
-    buildApiUrl('/api/homepage?populate[hero][populate]=*&populate[seo][populate]=*&populate[trustedLogos][populate]=*&populate[trustedHeading][populate]=*&populate[servicesHeading][populate]=*&populate[featuredServices][populate]=*&populate[whyChooseHeading][populate]=*&populate[whyChooseCards][populate]=*&populate[whyChooseImage][populate]=*&populate[whyChooseBackgroundImage][populate]=*&populate[processHeading][populate]=*&populate[processSteps][populate]=*&populate[portfolioHeading][populate]=*&populate[portfolioButton][populate]=*&populate[portfolioItems][populate]=*&populate[testimonialsHeading][populate]=*&populate[testimonials][populate]=*&populate[finalCta][populate]=*'),
+    buildApiUrl('/api/homepage?populate[hero][populate]=*&populate[seo][populate]=*&populate[trustedLogos][populate]=*&populate[trustedHeading][populate]=*&populate[servicesHeading][populate]=*&populate[featuredServices][populate]=*&populate[whyChooseHeading][populate]=*&populate[whyChooseCards][populate]=*&populate[whyChooseImage][populate]=*&populate[whyChooseBackgroundImage][populate]=*&populate[processHeading][populate]=*&populate[processSteps][populate]=*&populate[portfolioHeading][populate]=*&populate[portfolioButton][populate]=*&populate[portfolioItems][populate]=*&populate[testimonialsHeading][populate]=*&populate[testimonials][populate]=*&populate[faqHeading][populate]=*&populate[faqs][populate]=*&populate[faqSection][populate]=*&populate[finalCta][populate]=*'),
     buildApiUrl('/api/homepage?populate=*'),
     buildApiUrl('/api/homepage')
   ]

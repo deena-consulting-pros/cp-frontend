@@ -181,6 +181,22 @@ export interface StrapiHomepageFinalCta {
   variant?: string | null
 }
 
+export interface StrapiHomepageFaqHeading {
+  label?: string | null
+  title?: string | null
+  subtitle?: string | null
+  highlightText?: string | null
+  alignment?: string | null
+}
+
+export interface StrapiHomepageFaqItem {
+  id?: number | string
+  question?: string | null
+  answer?: string | null
+  order?: number | null
+  attributes?: StrapiHomepageFaqItem | null
+}
+
 export interface StrapiTrustedHeading {
   label?: string | null
   title?: string | null
@@ -230,6 +246,12 @@ export interface StrapiHomepageData {
   portfolioItems?: StrapiPortfolioItem[] | null
   testimonialsHeading?: StrapiTestimonialsHeading | null
   testimonials?: StrapiTestimonial[] | null
+  faqHeading?: StrapiHomepageFaqHeading | null
+  faqs?: StrapiHomepageFaqItem[] | null
+  faqSection?: StrapiHomepageFaqItem[] | StrapiHomepageFaqHeading | null
+  faqItems?: StrapiHomepageFaqItem[] | null
+  frequentlyAskedQuestions?: StrapiHomepageFaqItem[] | null
+  frequentlyAskedQuestionsHeading?: StrapiHomepageFaqHeading | null
   seo?: StrapiHomepageSeo | null
   attributes?: StrapiHomepageData | null
 }
@@ -405,6 +427,19 @@ export interface HomepageData {
     clientImage: string
     order?: number
     isActive?: boolean
+  }>
+  faqHeading: {
+    label: string
+    title: string
+    subtitle: string
+    highlightText: string
+    alignment: string
+  }
+  faqs: Array<{
+    id: string
+    question: string
+    answer: string
+    order?: number
   }>
   seo: {
     metaTitle: string

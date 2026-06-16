@@ -170,6 +170,12 @@ useJsonLd([organizationSchema, websiteSchema, webPageSchema])
             :testimonials="homepageData.testimonials"
           />
         </SectionShell>
+        <SectionShell background="light" container="normal" section-class="overflow-x-clip py-20 md:py-24 lg:py-28" container-class="lg:px-10">
+          <HomeFaqSection
+            :heading="homepageData.faqHeading"
+            :faqs="homepageData.faqs"
+          />
+        </SectionShell>
         <SectionShell background="white" container="normal" section-class="overflow-x-clip py-24 md:py-24 lg:py-28" container-class="lg:px-10">
           <CtaSection :cta="homepageData.finalCta" />
         </SectionShell>
