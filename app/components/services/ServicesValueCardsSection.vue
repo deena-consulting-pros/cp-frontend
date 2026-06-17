@@ -5,44 +5,13 @@ import { resolveIconKey } from '~/utils/iconMap'
 type ValueCardsHeading = ServicesPageData['valueCardsSection']
 type ValueCard = ServicesPageData['valueCards'][number]
 
-const fallbackHeading: ValueCardsHeading = {
-  label: 'Why Work With Us',
-  title: 'Practical Digital Support for Long-Term Growth',
-  highlightText: 'Long-Term Growth',
-  subtitle: 'Clear, practical support across strategy, performance, delivery, and communication.',
+const emptyHeading: NonNullable<ValueCardsHeading> = {
+  label: '',
+  title: '',
+  highlightText: '',
+  subtitle: '',
   alignment: 'center'
 }
-
-const fallbackCards: ValueCard[] = [
-  {
-    id: 'services-value-fallback-1',
-    title: 'Practical Strategy',
-    description: 'Actionable plans tailored to your business goals, market, and resources.',
-    iconKey: 'target',
-    order: 1
-  },
-  {
-    id: 'services-value-fallback-2',
-    title: 'Performance Focus',
-    description: 'Clear KPI tracking and optimization to improve measurable outcomes.',
-    iconKey: 'analytics',
-    order: 2
-  },
-  {
-    id: 'services-value-fallback-3',
-    title: 'Flexible Support',
-    description: 'Support models that adapt to your team, timelines, and growth stages.',
-    iconKey: 'team',
-    order: 3
-  },
-  {
-    id: 'services-value-fallback-4',
-    title: 'Clear Communication',
-    description: 'Transparent updates, priorities, and decisions throughout delivery.',
-    iconKey: 'spark',
-    order: 4
-  }
-]
 
 const props = withDefaults(defineProps<{
   heading?: ValueCardsHeading | null
@@ -63,26 +32,30 @@ const isVisible = ref(false)
 let observer: IntersectionObserver | null = null
 
 const normalizedHeading = computed<ValueCardsHeading>(() => {
-  const source = props.heading || fallbackHeading
+  const source = props.heading || emptyHeading
   return {
-    label: source.label || fallbackHeading.label,
-    title: source.title || fallbackHeading.title,
-    highlightText: source.highlightText || fallbackHeading.highlightText,
-    subtitle: source.subtitle || fallbackHeading.subtitle,
-    alignment: source.alignment || fallbackHeading.alignment
+    label: source.label || '',
+    title: source.title || '',
+    highlightText: source.highlightText || '',
+    subtitle: source.subtitle || '',
+    alignment: source.alignment || emptyHeading.alignment
   }
 })
 
 const sortedCards = computed<ValueCard[]>(() => {
-  const source = [...(props.cards || [])]
+  return [...(props.cards || [])]
     .filter((card) => card?.title || card?.description)
     .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER))
-
-  if (source.length) return source
-  return fallbackCards
 })
 
-const hasContent = computed(() => sortedCards.value.length > 0)
+const hasHeadingContent = computed(() => Boolean(
+  normalizedHeading.value.label
+  || normalizedHeading.value.title
+  || normalizedHeading.value.highlightText
+  || normalizedHeading.value.subtitle
+))
+
+const hasContent = computed(() => hasHeadingContent.value || sortedCards.value.length > 0)
 
 const iconKeyFor = (card: ValueCard) => resolveIconKey(card.iconKey) || 'target'
 
@@ -111,7 +84,7 @@ onBeforeUnmount(() => observer?.disconnect())
     v-if="hasContent"
     ref="sectionRef"
     class="w-full overflow-x-clip"
-    aria-labelledby="services-value-cards-title"
+    :aria-labelledby="hasHeadingContent ? 'services-value-cards-title' : undefined"
   >
     <SectionHeading
       id="services-value-cards-title"

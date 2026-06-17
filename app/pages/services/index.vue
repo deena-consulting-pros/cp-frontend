@@ -125,6 +125,18 @@ const servicesCatalogSchema = computed(() => buildServicesSchema({
   serviceItems: catalogServiceItems.value
 }))
 
+const hasValueCardsSection = computed(() => {
+  const heading = servicesData.value.valueCardsSection
+  const hasHeading = Boolean(
+    heading?.label?.trim()
+    || heading?.title?.trim()
+    || heading?.highlightText?.trim()
+    || heading?.subtitle?.trim()
+  )
+  const hasCards = (servicesData.value.valueCards || []).length > 0
+  return hasHeading || hasCards
+})
+
 useJsonLd(computed(() => [
   organizationSchema,
   servicesPageSchema,
@@ -198,7 +210,7 @@ useJsonLd(computed(() => [
     </SectionShell>
 
     <SectionShell
-      v-if="!pending && !error"
+      v-if="!pending && !error && hasValueCardsSection"
       background="transparent"
       container="normal"
       section-class="bg-[#e8e8ea] py-16 md:py-20 lg:py-24"
