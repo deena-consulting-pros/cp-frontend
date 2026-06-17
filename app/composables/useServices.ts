@@ -137,6 +137,44 @@ const normalizeServicesSection = (value: unknown) => {
   }
 }
 
+const normalizeCtaSection = (
+  value: unknown,
+  toMediaUrl: (url?: string | null) => string
+) => {
+  if (!value) return null
+
+  const source = readEntity(value)
+
+  if (source.isEnabled === false) return null
+
+  const eyebrow = pickText(source.eyebrow as string)
+  const title = pickText(source.title as string)
+  const description = pickText(source.description as string)
+  const primaryButtonLabel = pickText(source.primaryButtonLabel as string)
+
+  const hasContent = Boolean(eyebrow || title || description || primaryButtonLabel)
+  if (!hasContent) return null
+
+  return {
+    isEnabled: true,
+    eyebrow,
+    title,
+    description,
+    primaryButton: {
+      label: primaryButtonLabel,
+      url: normalizeLink(pickText(source.primaryButtonUrl as string)),
+      newTab: false
+    },
+    secondaryButton: {
+      label: pickText(source.secondaryButtonLabel as string),
+      url: normalizeLink(pickText(source.secondaryButtonUrl as string)),
+      newTab: false
+    },
+    backgroundImage: toMediaUrl(readMediaUrl(source.backgroundImage as StrapiMedia | string | Record<string, unknown> | null)),
+    variant: pickText(source.variant as string)
+  }
+}
+
 const normalizeDeliveryProcess = (value: unknown) => {
   if (!Array.isArray(value)) return []
 
@@ -486,6 +524,7 @@ const normalizeServices = (
   const primaryButton = readEntity(hero.primaryButton)
   const secondaryButton = readEntity(hero.secondaryButton)
   const faqSectionValue = (entry as Record<string, unknown>).faqSection
+  const ctaSectionValue = (entry as Record<string, unknown>).ctaSection
   const finalCtaValue = (entry as Record<string, unknown>).finalCta
     || (entry as Record<string, unknown>).cta
     || (entry as Record<string, unknown>).finalCTA
@@ -579,6 +618,7 @@ const normalizeServices = (
       || (entry as Record<string, unknown>).frequentlyAskedQuestions
     ),
     serviceCards: normalizeServiceCards(serviceCollectionResponse?.data || [], toMediaUrl),
+    ctaSection: normalizeCtaSection(ctaSectionValue, toMediaUrl),
     seo: {
       metaTitle: pickText(seo.metaTitle as string),
       metaDescription: pickText(seo.metaDescription as string),
@@ -604,8 +644,8 @@ export const useServices = async () => {
   const { buildApiUrl, toMediaUrl } = useStrapi()
 
   const candidateEndpoints = [
-    buildApiUrl('/api/services-page?populate[hero][populate]=*&populate[servicesSection]=*&populate[featuredServicesSection]=*&populate[benefitsSectionHeading]=*&populate[benefits][populate]=*&populate[partnershipStagesHeading]=*&populate[partnershipStages][populate]=*&populate[faqHeading]=*&populate[faqSection]=*&populate[processHeading]=true&populate[processSection]=true&populate[connectedSolutions][populate][points][populate]=*&populate[connectedSolutions][populate][orbitItems][populate]=*&populate[seo][populate]=*'),
-    buildApiUrl('/api/services-page?populate[hero][populate]=*&populate[servicesSection]=*&populate[featuredServicesSection]=*&populate[partnershipStagesHeading]=*&populate[partnershipStages][populate]=*&populate[faqHeading]=*&populate[faqSection]=*&populate[connectedSolutions][populate][points][populate]=*&populate[connectedSolutions][populate][orbitItems][populate]=*&populate[seo][populate]=*'),
+    buildApiUrl('/api/services-page?populate[hero][populate]=*&populate[servicesSection]=*&populate[ctaSection][populate]=*&populate[featuredServicesSection]=*&populate[benefitsSectionHeading]=*&populate[benefits][populate]=*&populate[partnershipStagesHeading]=*&populate[partnershipStages][populate]=*&populate[faqHeading]=*&populate[faqSection]=*&populate[processHeading]=true&populate[processSection]=true&populate[connectedSolutions][populate][points][populate]=*&populate[connectedSolutions][populate][orbitItems][populate]=*&populate[seo][populate]=*'),
+    buildApiUrl('/api/services-page?populate[hero][populate]=*&populate[servicesSection]=*&populate[ctaSection][populate]=*&populate[featuredServicesSection]=*&populate[partnershipStagesHeading]=*&populate[partnershipStages][populate]=*&populate[faqHeading]=*&populate[faqSection]=*&populate[connectedSolutions][populate][points][populate]=*&populate[connectedSolutions][populate][orbitItems][populate]=*&populate[seo][populate]=*'),
     buildApiUrl('/api/services-page?populate=*'),
     buildApiUrl('/api/services?populate[hero][populate]=*&populate[seo][populate]=*'),
     buildApiUrl('/api/services?populate=*')

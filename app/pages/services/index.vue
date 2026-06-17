@@ -162,6 +162,11 @@ useJsonLd(computed(() => [
       />
     </section>
 
+    <ServicesCtaSection
+      v-if="!pending && !error && servicesData.ctaSection"
+      :cta="servicesData.ctaSection"
+    />
+
     <SectionShell
       v-if="!pending && !error"
       background="light"

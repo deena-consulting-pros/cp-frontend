@@ -64,6 +64,19 @@ export interface StrapiServicesFinalCta {
   variant?: string | null
 }
 
+export interface StrapiServicesCtaSection {
+  isEnabled?: boolean | null
+  eyebrow?: string | null
+  title?: string | null
+  description?: string | null
+  primaryButtonLabel?: string | null
+  primaryButtonUrl?: string | null
+  secondaryButtonLabel?: string | null
+  secondaryButtonUrl?: string | null
+  backgroundImage?: StrapiMedia | string | null
+  variant?: string | null
+}
+
 export interface StrapiServicesPageData {
   hero?: StrapiServicesHero | null
   servicesSection?: {
@@ -80,6 +93,7 @@ export interface StrapiServicesPageData {
     subtitle?: string | null
     alignment?: string | null
   } | null
+  ctaSection?: StrapiServicesCtaSection | null
   deliveryProcessSection?: {
     label?: string | null
     title?: string | null
@@ -465,4 +479,22 @@ export interface ServicesPageData {
     backgroundImage: string
     variant: string
   }
+  ctaSection: {
+    isEnabled: boolean
+    eyebrow: string
+    title: string
+    description: string
+    primaryButton: {
+      label: string
+      url: string
+      newTab: boolean
+    }
+    secondaryButton: {
+      label: string
+      url: string
+      newTab: boolean
+    }
+    backgroundImage: string
+    variant: string
+  } | null
 }
