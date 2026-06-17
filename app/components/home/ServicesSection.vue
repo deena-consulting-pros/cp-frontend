@@ -26,7 +26,6 @@ const sortedServices = computed(() => {
 })
 
 const hasServices = computed(() => sortedServices.value.length > 0)
-const isFeaturedCard = (index: number) => index === 0
 
 const serviceHref = (service: FeaturedService) => {
   if (service.slug) return `/services/${service.slug}`
@@ -34,74 +33,8 @@ const serviceHref = (service: FeaturedService) => {
   return '#'
 }
 
-const lgSpanForCard = (index: number, total: number) => {
-  if (total <= 3) return 1
-
-  if (total === 4) return (index === 0 || index === 3) ? 2 : 1
-
-  if (total === 5) return (index === 0 || index === 4) ? 2 : 1
-
-  if (total === 6) {
-    const spans = [2, 1, 1, 2, 2, 1]
-    return spans[index] ?? 1
-  }
-
-  if (index === 0) return 2
-  if (index === total - 1 && (total - 1) % 3 === 1) return 3
-
-  return 1
-}
-
-const cardRowIndex = (index: number, total: number) => {
-  let currentRow = 0
-  let currentRowSpan = 0
-
-  for (let i = 0; i <= index; i++) {
-    const span = lgSpanForCard(i, total)
-    if (currentRowSpan + span > 3) {
-      currentRow += 1
-      currentRowSpan = 0
-    }
-    currentRowSpan += span
-  }
-
-  return currentRow
-}
-
-const cardDelay = (index: number, total: number) => {
-  const row = cardRowIndex(index, total)
-  return `${Math.min(row * 140, 560)}ms`
-}
-
-const cardSpanClass = (index: number, total: number) => {
-  if (total <= 3) return 'md:col-span-1 lg:col-span-1'
-
-  if (total === 4) {
-    if (index === 0 || index === 3) return 'md:col-span-2 lg:col-span-2'
-    return 'md:col-span-1 lg:col-span-1'
-  }
-
-  if (total === 5) {
-    if (index === 0 || index === 4) return 'md:col-span-2 lg:col-span-2'
-    return 'md:col-span-1 lg:col-span-1'
-  }
-
-  if (total === 6) {
-    const desktopPattern = ['lg:col-span-2', 'lg:col-span-1', 'lg:col-span-1', 'lg:col-span-2', 'lg:col-span-2', 'lg:col-span-1']
-    const tabletPattern = ['md:col-span-2', 'md:col-span-1', 'md:col-span-1', 'md:col-span-2', 'md:col-span-2', 'md:col-span-1']
-    return `${tabletPattern[index]} ${desktopPattern[index]}`
-  }
-
-  if (index === 0) return 'md:col-span-2 lg:col-span-2'
-
-  const isLast = index === total - 1
-  const hasDesktopOrphan = (total - 1) % 3 === 1
-  const hasTabletOrphan = total % 2 === 1
-
-  if (isLast && hasDesktopOrphan) return 'md:col-span-2 lg:col-span-3'
-  if (isLast && hasTabletOrphan) return 'md:col-span-2 lg:col-span-1'
-
-  return 'md:col-span-1 lg:col-span-1'
+const cardDelay = (index: number) => {
+  return `${Math.min(index * 100, 600)}ms`
 }
 
 let observer: IntersectionObserver | null = null
@@ -149,11 +82,10 @@ onBeforeUnmount(() => { observer?.disconnect() })
         :to="serviceHref(service)"
         class="service-card-reveal service-card flex flex-col rounded-[1.5rem] border p-8 no-underline shadow-sm"
         :class="[
-          cardSpanClass(i, sortedServices.length),
           isVisible ? 'is-visible' : '',
-          isFeaturedCard(i) ? 'featured-card border-slate-200 bg-slate-50' : 'normal-card border-slate-200 bg-white'
+          'featured-card border-slate-200 bg-slate-50'
         ]"
-        :style="{ '--delay': cardDelay(i, sortedServices.length) }"
+        :style="{ '--delay': cardDelay(i) }"
         :aria-label="`Learn more about ${service.title}`"
       >
         <span
@@ -240,19 +172,6 @@ onBeforeUnmount(() => { observer?.disconnect() })
   color: #67fcc6;
 }
 
-.normal-card {
-  transition:
-    box-shadow 0.3s ease,
-    border-color 0.3s ease,
-    transform 0.3s ease;
-}
-
-.normal-card:hover {
-  transform: translateY(-0.4rem);
-  box-shadow: 0 18px 45px rgba(0, 28, 42, 0.11);
-  border-color: #8ebdad;
-}
-
 .card-icon-wrap {
   transition: transform 0.28s ease;
 }
@@ -288,7 +207,6 @@ onBeforeUnmount(() => { observer?.disconnect() })
   }
 
   .featured-card,
-  .normal-card,
   .card-icon-wrap,
   .card-arrow {
     transition: none;
@@ -296,7 +214,6 @@ onBeforeUnmount(() => { observer?.disconnect() })
 
   .service-card:hover .card-arrow,
   .service-card:hover .card-icon-wrap,
-  .normal-card:hover,
   .featured-card:hover {
     transform: none;
   }
