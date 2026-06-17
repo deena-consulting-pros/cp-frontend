@@ -22,10 +22,7 @@ const sectionRef = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
 
 const sortedServices = computed(() => {
-  const list = [...(props.services || [])]
-  const hasFeaturedField = list.some(s => typeof s.isFeatured === 'boolean')
-  const filtered = hasFeaturedField ? list.filter(s => s.isFeatured !== false) : list
-  return filtered.sort((a, b) => a.order - b.order)
+  return [...(props.services || [])].sort((a, b) => a.order - b.order)
 })
 
 const hasServices = computed(() => sortedServices.value.length > 0)
