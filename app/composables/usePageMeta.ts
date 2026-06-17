@@ -140,12 +140,23 @@ export const usePageMeta = (input: PageMetaInput) => {
     }
   }
 
+  const faviconType = (() => {
+    const url = defaults.favicon
+    if (!url) return ''
+    if (url.endsWith('.png')) return 'image/png'
+    if (url.endsWith('.svg')) return 'image/svg+xml'
+    if (url.endsWith('.jpg') || url.endsWith('.jpeg')) return 'image/jpeg'
+    if (url.endsWith('.ico')) return 'image/x-icon'
+    return ''
+  })()
+
   useHead({
     link: [
       ...(defaults.favicon
         ? [{
             key: 'favicon',
             rel: 'icon',
+            type: faviconType || undefined,
             href: defaults.favicon
           }]
         : []),
