@@ -190,6 +190,7 @@ const normalizeContactPage = (
       noindex: typeof seo.noindex === 'boolean' ? seo.noindex : undefined,
       nofollow: typeof seo.nofollow === 'boolean' ? seo.nofollow : undefined
     },
+    showHeroImage: entry.showHeroImage !== false,
     hero: {
       eyebrowText: pickText(hero.eyebrowText as string, hero.label as string),
       title: pickText(hero.title as string),

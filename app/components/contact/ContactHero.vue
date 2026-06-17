@@ -4,6 +4,7 @@ import type { ContactPageData } from '~/types/contact'
 const props = withDefaults(defineProps<{
   hero?: ContactPageData['hero']
   heroPoints?: ContactPageData['heroPoints']
+  showHeroImage?: boolean
 }>(), {
   hero: () => ({
     eyebrowText: '',
@@ -15,7 +16,8 @@ const props = withDefaults(defineProps<{
     primaryButtonUrl: '',
     primaryButtonNewTab: false
   }),
-  heroPoints: () => []
+  heroPoints: () => [],
+  showHeroImage: true
 })
 
 const { resolveImageUrl } = useStrapi()
@@ -60,7 +62,10 @@ const cardMotionClass = (index: number) => (index % 2 === 0 ? 'float-slow' : 'fl
       <div class="absolute -bottom-[16%] -left-[8%] h-[18rem] w-[18rem] rounded-full blur-[90px]" style="background-color: rgba(0, 28, 42, 0.08);" />
     </div>
 
-    <div class="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-20 sm:px-6 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-10 lg:py-24">
+    <div
+      class="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-20 sm:px-6 lg:items-center lg:px-10 lg:py-24"
+      :class="showHeroImage ? 'lg:grid lg:grid-cols-2 lg:gap-16' : ''"
+    >
       <div>
         <p class="eyebrow mb-5">{{ hero?.eyebrowText || 'GET IN TOUCH' }}</p>
         <h1 class="hero-main-title max-w-[39rem] text-[#001c2a]">{{ hero?.title || 'Let\'s Build Your Next Digital Growth Step' }}</h1>
@@ -79,7 +84,7 @@ const cardMotionClass = (index: number) => (index % 2 === 0 ? 'float-slow' : 'fl
 
       </div>
 
-      <div class="relative mx-auto w-full max-w-[38rem] lg:mx-0">
+      <div v-if="showHeroImage" class="relative mx-auto w-full max-w-[38rem] lg:mx-0">
         <div class="hero-image-card relative w-full overflow-hidden rounded-[2rem] border border-white/60 bg-white/70 p-4 shadow-[0_34px_80px_rgba(8,26,39,0.16)] backdrop-blur-[14px] sm:p-5">
           <div class="relative h-[22rem] overflow-hidden rounded-[1.35rem] bg-[linear-gradient(155deg,#ebf7f0,#dce9f4)] sm:h-[25rem] lg:h-[28rem]">
             <img

@@ -64,6 +64,7 @@ export interface ContactPageData {
     noindex?: boolean
     nofollow?: boolean
   }
+  showHeroImage: boolean
   hero: {
     eyebrowText: string
     title: string
@@ -89,6 +90,7 @@ export interface ContactPageData {
 
 export interface StrapiContactPageData {
   seo?: unknown
+  showHeroImage?: boolean | null
   hero?: unknown
   heroPoints?: unknown
   contactFormSection?: unknown

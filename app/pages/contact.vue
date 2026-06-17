@@ -205,6 +205,7 @@ onBeforeUnmount(() => {
       <ContactHero
         :hero="contactData.hero"
         :hero-points="contactData.heroPoints"
+        :show-hero-image="contactData.showHeroImage"
       />
     </div>
 
