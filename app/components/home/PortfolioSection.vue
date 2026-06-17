@@ -34,7 +34,7 @@ const hasContent = computed(() => visibleItems.value.length > 0)
 
 const buttonHref = computed(() => {
   const value = props.button?.url || ''
-  if (!value) return '/portfolio'
+  if (!value || value === '/portfolio') return '/services'
   return value
 })
 
