@@ -165,10 +165,17 @@ onBeforeUnmount(() => observer?.disconnect())
             </span>
 
             <div class="mt-auto">
-              <h3 class="text-[1.3rem] font-bold leading-[1.28] tracking-[-0.01em]">
+              <h3
+                class="text-[1.3rem] font-bold leading-[1.28] tracking-[-0.01em]"
+                :class="resolveVariant(pillar.variant) === 'large_dark' ? 'text-white' : 'text-[#001c2a]'"
+              >
                 {{ pillar.title }}
               </h3>
-              <p v-if="pillar.description" class="mt-3 text-[0.98rem] leading-[1.78]" :class="resolveVariant(pillar.variant) === 'large_dark' ? 'text-white/85' : 'text-slate-600'">
+              <p
+                v-if="pillar.description"
+                class="mt-3 text-[0.98rem] leading-[1.78]"
+                :class="resolveVariant(pillar.variant) === 'large_dark' ? 'text-white/90' : 'text-slate-600'"
+              >
                 {{ pillar.description }}
               </p>
             </div>
