@@ -65,7 +65,7 @@ const parseNumericPercent = (value: string): number | null => {
 
 const detailEndpoint = computed(() =>
   buildApiUrl(
-    `/api/services?filters[slug][$eq]=${encodeURIComponent(slug.value)}&populate[serviceDetails][populate][detailCard][populate]=*&populate[serviceDetails][populate][textPill][populate]=*&populate[serviceDetails][populate][visualItem][populate]=*&populate[serviceDetails][populate][checkListItem][populate]=*&populate[serviceDetails][populate][processSteps][populate]=*&populate[serviceDetails][populate][faqHeading][populate]=*&populate[serviceDetails][populate][faqSection][populate]=*&populate[seo][populate][metaImage][fields][0]=url&populate[seo][populate][metaImage][fields][1]=alternativeText&populate[featuredImage][fields][0]=url&populate[featuredImage][fields][1]=alternativeText`,
+    `/api/services?filters[slug][$eq]=${encodeURIComponent(slug.value)}&populate[serviceDetails][populate][detailCard][populate]=*&populate[serviceDetails][populate][textPill][populate]=*&populate[serviceDetails][populate][visualItem][populate]=*&populate[serviceDetails][populate][checkListItem][populate]=*&populate[serviceDetails][populate][processSteps][populate]=*&populate[serviceDetails][populate][faqHeading][populate]=*&populate[serviceDetails][populate][faqSection][populate]=*&populate[serviceCta][populate][button]=*&populate[serviceCta][populate][backgroundImage][fields][0]=url&populate[serviceCta][populate][backgroundImage][fields][1]=alternativeText&populate[seo][populate][metaImage][fields][0]=url&populate[seo][populate][metaImage][fields][1]=alternativeText&populate[featuredImage][fields][0]=url&populate[featuredImage][fields][1]=alternativeText`,
   ),
 );
 
@@ -207,6 +207,18 @@ const faqItems = computed(() =>
       answer: text(item.answer, item.description, item.text),
     }))
     .filter((item) => item.question && item.answer),
+);
+
+const serviceCta = computed(() => unwrap(serviceEntry.value.serviceCta));
+
+const serviceCtaButton = computed(() => unwrap(serviceCta.value.button));
+
+const serviceCtaBackgroundImage = computed(() =>
+  unwrap(serviceCta.value.backgroundImage),
+);
+
+const serviceCtaBackgroundImageUrl = computed(() =>
+  resolveImageUrl(serviceCtaBackgroundImage.value),
 );
 
 const relatedServices = computed(() =>
@@ -458,89 +470,93 @@ onBeforeUnmount(() => {
           class="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8"
         >
           <div class="flex min-w-0 flex-col justify-center">
-          <p class="eyebrow text-[#006c4f]">
-            {{ text(serviceEntry.serviceCategory, "Service") }}
-          </p>
-          <h1 class="mt-5">
-            {{ text(serviceEntry.title, "Service") }}
-          </h1>
-          <p class="mt-5 max-w-[60ch] text-[#41484c]">
-            {{ text(serviceEntry.shortDescription, pageDescription) }}
-          </p>
+            <p class="eyebrow text-[#006c4f]">
+              {{ text(serviceEntry.serviceCategory, "Service") }}
+            </p>
+            <h1 class="mt-5">
+              {{ text(serviceEntry.title, "Service") }}
+            </h1>
+            <p class="mt-5 max-w-[60ch] text-[#41484c]">
+              {{ text(serviceEntry.shortDescription, pageDescription) }}
+            </p>
 
-          <div class="mt-8 flex flex-wrap gap-3">
-            <span
-              v-for="pill in heroPills"
-              :key="pill.id"
-              class="rounded-full bg-[#006c4f]/10 px-4 py-1.5 text-sm font-semibold text-[#006c4f]"
-            >
-              {{ pill.text }}
-            </span>
-          </div>
-
-          <div class="mt-10 flex flex-wrap gap-4">
-            <NuxtLink to="/contact" class="service-btn service-btn--primary"
-              >Get Free Consultation</NuxtLink
-            >
-            <a href="#service-process" class="service-btn service-btn--ghost"
-              >View Process</a
-            >
-          </div>
-        </div>
-
-        <div class="relative min-w-0">
-          <div
-            class="relative overflow-hidden rounded-[2rem] bg-[#003247] p-8 shadow-[0_24px_60px_rgba(0,28,42,0.24)] sm:p-10 lg:p-12"
-          >
-            <div
-              class="absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/3 rounded-full bg-[#67fcc6]/10 blur-3xl"
-            ></div>
-            <div class="relative space-y-8">
-              <div
-                v-for="row in heroVisualRows"
-                :key="row.id"
-                class="space-y-4"
+            <div class="mt-8 flex flex-wrap gap-3">
+              <span
+                v-for="pill in heroPills"
+                :key="pill.id"
+                class="rounded-full bg-[#006c4f]/10 px-4 py-1.5 text-sm font-semibold text-[#006c4f]"
               >
-                <div
-                  class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(120px,170px)_1fr] sm:gap-6"
-                >
-                  <span class="text-sm font-semibold leading-6 tracking-wide text-white/90">
-                    {{ row.label }}
-                  </span>
+                {{ pill.text }}
+              </span>
+            </div>
 
-                  <span class="text-xs font-bold uppercase leading-6 tracking-wide text-[#67fcc6]">
-                    {{ row.value || "Included" }}
-                  </span>
-                </div>
-
-                <div
-                  v-if="parseNumericPercent(row.value) !== null"
-                  class="h-2 w-full overflow-hidden rounded-full bg-white/10"
-                >
-                  <div
-                    class="h-full rounded-full bg-[#67fcc6] transition-all duration-1000"
-                    :style="{ width: `${parseNumericPercent(row.value)}%` }"
-                  ></div>
-                </div>
-
-                <div v-else class="h-px w-full bg-white/10"></div>
-              </div>
+            <div class="mt-10 flex flex-wrap gap-4">
+              <NuxtLink to="/contact" class="service-btn service-btn--primary"
+                >Get Free Consultation</NuxtLink
+              >
+              <a href="#service-process" class="service-btn service-btn--ghost"
+                >View Process</a
+              >
             </div>
           </div>
-          <div
-            class="relative mt-4 max-w-full rounded-2xl border border-white/30 bg-white/80 p-4 shadow-[0_20px_40px_rgba(0,28,42,0.22)] backdrop-blur-md sm:p-5 lg:absolute lg:-bottom-6 lg:-left-4"
-          >
-            <p
-              class="text-xs font-bold uppercase tracking-wider text-[#006c4f]"
+
+          <div class="relative min-w-0">
+            <div
+              class="relative overflow-hidden rounded-[2rem] bg-[#003247] p-8 shadow-[0_24px_60px_rgba(0,28,42,0.24)] sm:p-10 lg:p-12"
             >
-              Featured
-            </p>
-            <p class="mt-1 text-sm font-semibold text-[#001c2a]">
-              {{ text(serviceEntry.title, "Service") }} Audit
-            </p>
+              <div
+                class="absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/3 rounded-full bg-[#67fcc6]/10 blur-3xl"
+              ></div>
+              <div class="relative space-y-8">
+                <div
+                  v-for="row in heroVisualRows"
+                  :key="row.id"
+                  class="space-y-4"
+                >
+                  <div
+                    class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(120px,170px)_1fr] sm:gap-6"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-6 tracking-wide text-white/90"
+                    >
+                      {{ row.label }}
+                    </span>
+
+                    <span
+                      class="text-xs font-bold uppercase leading-6 tracking-wide text-[#67fcc6]"
+                    >
+                      {{ row.value || "Included" }}
+                    </span>
+                  </div>
+
+                  <div
+                    v-if="parseNumericPercent(row.value) !== null"
+                    class="h-2 w-full overflow-hidden rounded-full bg-white/10"
+                  >
+                    <div
+                      class="h-full rounded-full bg-[#67fcc6] transition-all duration-1000"
+                      :style="{ width: `${parseNumericPercent(row.value)}%` }"
+                    ></div>
+                  </div>
+
+                  <div v-else class="h-px w-full bg-white/10"></div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="relative mt-4 max-w-full rounded-2xl border border-white/30 bg-white/80 p-4 shadow-[0_20px_40px_rgba(0,28,42,0.22)] backdrop-blur-md sm:p-5 lg:absolute lg:-bottom-6 lg:-left-4"
+            >
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-[#006c4f]"
+              >
+                Featured
+              </p>
+              <p class="mt-1 text-sm font-semibold text-[#001c2a]">
+                {{ text(serviceEntry.title, "Service") }} Audit
+              </p>
+            </div>
           </div>
         </div>
-      </div>
       </section>
 
       <section
@@ -628,32 +644,48 @@ onBeforeUnmount(() => {
       >
         <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
           <div class="text-center">
-            <h2 class="section-title">What's Included</h2>
+            <p
+              v-if="text(serviceDetails?.includedEyebrow)"
+              class="eyebrow text-[#006c4f]"
+            >
+              {{ text(serviceDetails?.includedEyebrow) }}
+            </p>
+
+            <h2 class="section-title">
+              {{ text(serviceDetails?.includedTitle, "What's Included") }}
+            </h2>
+
+            <p
+              v-if="text(serviceDetails?.includedDescription)"
+              class="mx-auto mt-5 max-w-[720px] text-[#41484c]"
+            >
+              {{ text(serviceDetails?.includedDescription) }}
+            </p>
           </div>
           <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <article
-            v-for="card in displayIncludedCards"
-            :key="card.id"
-            class="service-detail-card group rounded-2xl border border-[#e2e2e4]/80 bg-white/75 p-8 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-2"
-          >
-            <span
-              class="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-[#006c4f]/10 text-[#006c4f]"
+            <article
+              v-for="card in displayIncludedCards"
+              :key="card.id"
+              class="service-detail-card group rounded-2xl border border-[#e2e2e4]/80 bg-white/75 p-8 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-2"
             >
-              <AppIcon
-                :icon-key="card.iconKey || 'checkCircle'"
-                :title="card.title"
-                class="h-6 w-6"
-              />
-            </span>
-            <h3 class="text-xl font-bold text-[#001c2a]">
-              {{ card.title }}
-            </h3>
-            <p class="mt-3 text-base leading-7 text-[#41484c]">
-              {{ card.description }}
-            </p>
-          </article>
+              <span
+                class="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-[#006c4f]/10 text-[#006c4f]"
+              >
+                <AppIcon
+                  :icon-key="card.iconKey || 'checkCircle'"
+                  :title="card.title"
+                  class="h-6 w-6"
+                />
+              </span>
+              <h3 class="text-xl font-bold text-[#001c2a]">
+                {{ card.title }}
+              </h3>
+              <p class="mt-3 text-base leading-7 text-[#41484c]">
+                {{ card.description }}
+              </p>
+            </article>
+          </div>
         </div>
-      </div>
       </section>
 
       <section
@@ -788,24 +820,58 @@ onBeforeUnmount(() => {
           <div
             class="relative overflow-hidden rounded-[2rem] bg-[#003247] px-6 py-14 text-center sm:px-10 lg:px-16 lg:py-20"
           >
-          <div
-            class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,252,198,0.1),transparent_70%)]"
-          ></div>
-          <div class="relative mx-auto max-w-[760px]">
-            <h2 class="text-white">Ready to Move This Service Forward?</h2>
-            <p class="mt-5 text-lg text-[#a4cce6]">
-              Book a focused consultation and get a practical next-step plan
-              tailored to your goals.
-            </p>
-            <NuxtLink
-              to="/contact"
-              class="service-btn service-btn--mint mt-10 inline-flex"
-            >
-              Get Free Consultation
-            </NuxtLink>
+            <img
+              v-if="serviceCtaBackgroundImageUrl"
+              :src="serviceCtaBackgroundImageUrl"
+              :alt="text(serviceCtaBackgroundImage.alternativeText, serviceCta.title)"
+              class="absolute inset-0 h-full w-full object-cover opacity-20"
+            />
+
+            <div
+              class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,252,198,0.1),transparent_70%)]"
+            ></div>
+
+            <div class="absolute inset-0 bg-[#003247]/80"></div>
+
+            <div class="relative mx-auto max-w-[760px]">
+              <h2 class="text-white">
+                {{
+                  text(
+                    serviceCta.title,
+                    "Ready to Move This Service Forward?",
+                  )
+                }}
+              </h2>
+
+              <p class="mt-5 text-lg text-[#a4cce6]">
+                {{
+                  text(
+                    serviceCta.description,
+                    "Book a focused consultation and get a practical next-step plan tailored to your goals.",
+                  )
+                }}
+              </p>
+
+              <a
+                v-if="serviceCtaButton.newTab"
+                :href="normalizeLink(text(serviceCtaButton.url), '/contact')"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="service-btn service-btn--mint mt-10 inline-flex"
+              >
+                {{ text(serviceCtaButton.label, "Get Free Consultation") }}
+              </a>
+
+              <NuxtLink
+                v-else
+                :to="normalizeLink(text(serviceCtaButton.url), '/contact')"
+                class="service-btn service-btn--mint mt-10 inline-flex"
+              >
+                {{ text(serviceCtaButton.label, "Get Free Consultation") }}
+              </NuxtLink>
+            </div>
           </div>
         </div>
-      </div>
       </section>
     </template>
   </main>
