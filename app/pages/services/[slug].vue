@@ -841,66 +841,20 @@ onBeforeUnmount(() => {
 
       <section
         data-reveal-id="cta"
-        class="service-detail-reveal pb-20 lg:pb-24"
+        class="service-detail-reveal py-16 md:py-24 lg:py-28"
         :class="{ 'is-visible': isSectionVisible('cta') }"
       >
         <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-          <div
-            class="relative overflow-hidden rounded-[2rem] bg-[#003247] px-6 py-14 text-center sm:px-10 lg:px-16 lg:py-20"
-          >
-            <img
-              v-if="serviceCtaBackgroundImageUrl"
-              :src="serviceCtaBackgroundImageUrl"
-              :alt="
-                text(
-                  serviceCtaBackgroundImage.alternativeText,
-                  serviceCta.title,
-                )
-              "
-              class="absolute inset-0 h-full w-full object-cover opacity-20"
-            />
-
-            <div
-              class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,252,198,0.1),transparent_70%)]"
-            ></div>
-
-            <div class="absolute inset-0 bg-[#003247]/80"></div>
-
-            <div class="relative mx-auto max-w-[760px]">
-              <h2 class="text-white">
-                {{
-                  text(serviceCta.title, "Ready to Move This Service Forward?")
-                }}
-              </h2>
-
-              <p class="mt-5 text-lg text-[#a4cce6]">
-                {{
-                  text(
-                    serviceCta.description,
-                    "Book a focused consultation and get a practical next-step plan tailored to your goals.",
-                  )
-                }}
-              </p>
-
-              <a
-                v-if="serviceCtaButton.newTab"
-                :href="normalizeLink(text(serviceCtaButton.url), '/contact')"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="service-btn service-btn--mint mt-10 inline-flex"
-              >
-                {{ text(serviceCtaButton.label, "Get Free Consultation") }}
-              </a>
-
-              <NuxtLink
-                v-else
-                :to="normalizeLink(text(serviceCtaButton.url), '/contact')"
-                class="service-btn service-btn--mint mt-10 inline-flex"
-              >
-                {{ text(serviceCtaButton.label, "Get Free Consultation") }}
-              </NuxtLink>
-            </div>
-          </div>
+          <BottomCtaSection
+            :title="text(serviceCta.title, 'Ready to Move This Service Forward?')"
+            :description="text(serviceCta.description, 'Book a focused consultation and get a practical next-step plan tailored to your goals.')"
+            :primary-label="text(serviceCtaButton.label, 'Get Free Consultation')"
+            :primary-to="normalizeLink(text(serviceCtaButton.url), '/contact')"
+            :primary-new-tab="Boolean(serviceCtaButton.newTab)"
+            :background-image="serviceCtaBackgroundImageUrl"
+            variant="teal"
+            no-reveal
+          />
         </div>
       </section>
     </template>

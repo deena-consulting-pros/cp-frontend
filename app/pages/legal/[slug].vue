@@ -842,32 +842,16 @@ onBeforeUnmount(() => {
                 :class="{ 'is-visible': isSectionVisible('cta') }"
             >
                 <div
-                    class="mx-auto w-full max-w-295 px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20"
+                    class="mx-auto w-full max-w-[1280px] px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20"
                 >
-                    <div
-                        class="relative overflow-hidden rounded-2xl bg-[#001c2a] px-6 py-8 text-center sm:px-10 lg:px-14 lg:py-10"
-                    >
-                        <div
-                            class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,252,198,0.08),transparent_70%)]"
-                        />
-                        <div class="relative mx-auto max-w-[560px]">
-                            <h2
-                                class="text-xl font-bold text-white lg:text-2xl"
-                            >
-                                Need help understanding our policies?
-                            </h2>
-                            <p class="mt-2 text-sm text-[#a4cce6]">
-                                Contact us and we'll guide you to the right
-                                information.
-                            </p>
-                            <NuxtLink
-                                to="/contact"
-                                class="mt-5 inline-flex items-center justify-center rounded-full bg-[#67fcc6] px-5 py-2.5 text-sm font-bold text-[#002115] shadow-[0_10px_24px_rgba(103,252,198,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(103,252,198,0.28)] focus:outline-none focus:ring-2 focus:ring-[#67fcc6] focus:ring-offset-2"
-                            >
-                                Contact Us
-                            </NuxtLink>
-                        </div>
-                    </div>
+                    <BottomCtaSection
+                        title="Need help understanding our policies?"
+                        description="Contact us and we'll guide you to the right information."
+                        primary-label="Contact Us"
+                        primary-to="/contact"
+                        variant="navy"
+                        no-reveal
+                    />
                 </div>
             </section>
         </template>
