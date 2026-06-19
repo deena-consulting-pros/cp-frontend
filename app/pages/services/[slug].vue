@@ -447,14 +447,17 @@ onBeforeUnmount(() => {
     <template v-else>
       <section
         data-reveal-id="hero"
-        class="service-detail-reveal relative mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-10 px-[5vw] py-14 lg:grid-cols-2 lg:gap-16 lg:py-24"
+        class="service-detail-reveal relative w-full py-14 lg:py-24"
         :class="{ 'is-visible': isSectionVisible('hero') }"
       >
         <div
           class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(103,252,198,0.05),transparent_40%),radial-gradient(circle_at_90%_80%,rgba(0,28,42,0.03),transparent_40%)]"
         ></div>
 
-        <div class="flex flex-col justify-center">
+        <div
+          class="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8"
+        >
+          <div class="flex min-w-0 flex-col justify-center">
           <p class="eyebrow text-[#006c4f]">
             {{ text(serviceEntry.serviceCategory, "Service") }}
           </p>
@@ -485,7 +488,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="relative">
+        <div class="relative min-w-0">
           <div
             class="relative overflow-hidden rounded-[2rem] bg-[#003247] p-8 shadow-[0_24px_60px_rgba(0,28,42,0.24)] sm:p-10 lg:p-12"
           >
@@ -496,35 +499,36 @@ onBeforeUnmount(() => {
               <div
                 v-for="row in heroVisualRows"
                 :key="row.id"
-                class="space-y-3"
+                class="space-y-4"
               >
-                <div class="flex items-center justify-between gap-4">
-                  <span
-                    class="text-sm font-semibold tracking-wide text-white/90"
-                    >{{ row.label }}</span
-                  >
-                  <span
-                    class="text-xs font-bold uppercase tracking-wider text-[#67fcc6]"
-                    >{{ row.value || "Included" }}</span
-                  >
+                <div
+                  class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(120px,170px)_1fr] sm:gap-6"
+                >
+                  <span class="text-sm font-semibold leading-6 tracking-wide text-white/90">
+                    {{ row.label }}
+                  </span>
+
+                  <span class="text-xs font-bold uppercase leading-6 tracking-wide text-[#67fcc6]">
+                    {{ row.value || "Included" }}
+                  </span>
                 </div>
+
                 <div
                   v-if="parseNumericPercent(row.value) !== null"
                   class="h-2 w-full overflow-hidden rounded-full bg-white/10"
                 >
                   <div
                     class="h-full rounded-full bg-[#67fcc6] transition-all duration-1000"
-                    :style="{
-                      width: `${parseNumericPercent(row.value)}%`,
-                    }"
+                    :style="{ width: `${parseNumericPercent(row.value)}%` }"
                   ></div>
                 </div>
+
                 <div v-else class="h-px w-full bg-white/10"></div>
               </div>
             </div>
           </div>
           <div
-            class="absolute -bottom-6 -left-4 rounded-2xl border border-white/30 bg-white/80 p-4 shadow-[0_20px_40px_rgba(0,28,42,0.22)] backdrop-blur-md sm:p-5"
+            class="relative mt-4 max-w-full rounded-2xl border border-white/30 bg-white/80 p-4 shadow-[0_20px_40px_rgba(0,28,42,0.22)] backdrop-blur-md sm:p-5 lg:absolute lg:-bottom-6 lg:-left-4"
           >
             <p
               class="text-xs font-bold uppercase tracking-wider text-[#006c4f]"
@@ -536,15 +540,16 @@ onBeforeUnmount(() => {
             </p>
           </div>
         </div>
+      </div>
       </section>
 
       <section
         data-reveal-id="overview"
-        class="service-detail-reveal bg-white px-[5vw] py-16 lg:py-24"
+        class="service-detail-reveal bg-white py-16 lg:py-24"
         :class="{ 'is-visible': isSectionVisible('overview') }"
       >
         <div
-          class="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20"
+          class="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-8"
         >
           <div>
             <p class="eyebrow">
@@ -618,13 +623,14 @@ onBeforeUnmount(() => {
 
       <section
         data-reveal-id="included"
-        class="service-detail-reveal mx-auto w-full max-w-[1440px] px-[5vw] py-16 lg:py-24"
+        class="service-detail-reveal py-16 lg:py-24"
         :class="{ 'is-visible': isSectionVisible('included') }"
       >
-        <div class="text-center">
-          <h2 class="section-title">What's Included</h2>
-        </div>
-        <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
+          <div class="text-center">
+            <h2 class="section-title">What's Included</h2>
+          </div>
+          <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <article
             v-for="card in displayIncludedCards"
             :key="card.id"
@@ -647,15 +653,16 @@ onBeforeUnmount(() => {
             </p>
           </article>
         </div>
+      </div>
       </section>
 
       <section
         id="service-process"
         data-reveal-id="process"
-        class="service-detail-reveal bg-[#001c2a] px-[5vw] py-16 text-white lg:py-24"
+        class="service-detail-reveal bg-[#001c2a] py-16 text-white lg:py-24"
         :class="{ 'is-visible': isSectionVisible('process') }"
       >
-        <div class="mx-auto w-full max-w-[1440px]">
+        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
           <h2 class="section-title text-white text-center lg:text-left">
             Our Strategic Process
           </h2>
@@ -700,10 +707,10 @@ onBeforeUnmount(() => {
 
       <section
         data-reveal-id="benefits"
-        class="service-detail-reveal bg-[#f3f3f5] px-[5vw] py-16 lg:py-24"
+        class="service-detail-reveal bg-[#f3f3f5] py-16 lg:py-24"
         :class="{ 'is-visible': isSectionVisible('benefits') }"
       >
-        <div class="mx-auto w-full max-w-[1440px]">
+        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
           <div class="text-center">
             <p
               v-if="text(serviceDetails?.benefitsEyebrow)"
@@ -754,28 +761,33 @@ onBeforeUnmount(() => {
 
       <section
         data-reveal-id="related"
-        class="service-detail-reveal mx-auto w-full max-w-[1440px] px-[5vw] py-16 lg:py-24"
+        class="service-detail-reveal py-16 lg:py-24"
         :class="{ 'is-visible': isSectionVisible('related') }"
       >
-        <ServiceDetailRelatedServices :services="relatedServices" />
+        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
+          <ServiceDetailRelatedServices :services="relatedServices" />
+        </div>
       </section>
 
       <section
         data-reveal-id="faq"
-        class="service-detail-reveal bg-white px-[5vw] py-16 lg:py-24"
+        class="service-detail-reveal bg-white py-16 lg:py-24"
         :class="{ 'is-visible': isSectionVisible('faq') }"
       >
-        <ServiceDetailFaq :heading="faqHeading" :items="faqItems" />
+        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
+          <ServiceDetailFaq :heading="faqHeading" :items="faqItems" />
+        </div>
       </section>
 
       <section
         data-reveal-id="cta"
-        class="service-detail-reveal mx-auto w-full max-w-[1440px] px-[5vw] pb-20 lg:pb-24"
+        class="service-detail-reveal pb-20 lg:pb-24"
         :class="{ 'is-visible': isSectionVisible('cta') }"
       >
-        <div
-          class="relative overflow-hidden rounded-[2rem] bg-[#003247] px-6 py-14 text-center sm:px-10 lg:px-16 lg:py-20"
-        >
+        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
+          <div
+            class="relative overflow-hidden rounded-[2rem] bg-[#003247] px-6 py-14 text-center sm:px-10 lg:px-16 lg:py-20"
+          >
           <div
             class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,252,198,0.1),transparent_70%)]"
           ></div>
@@ -793,6 +805,7 @@ onBeforeUnmount(() => {
             </NuxtLink>
           </div>
         </div>
+      </div>
       </section>
     </template>
   </main>
