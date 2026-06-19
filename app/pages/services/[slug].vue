@@ -695,9 +695,25 @@ onBeforeUnmount(() => {
         :class="{ 'is-visible': isSectionVisible('process') }"
       >
         <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-          <h2 class="section-title text-white text-center lg:text-left">
-            Our Strategic Process
-          </h2>
+          <div class="mx-auto max-w-[760px] text-center">
+            <p
+              v-if="text(serviceDetails?.processEyebrow)"
+              class="eyebrow text-[#67fcc6]"
+            >
+              {{ text(serviceDetails?.processEyebrow) }}
+            </p>
+
+            <h2 class="section-title text-white!">
+              {{ text(serviceDetails?.processTitle, "Our Strategic Process") }}
+            </h2>
+
+            <p
+              v-if="text(serviceDetails?.processDescription)"
+              class="mx-auto mt-5 text-lg leading-8 text-white/75"
+            >
+              {{ text(serviceDetails?.processDescription) }}
+            </p>
+          </div>
           <div class="relative mt-16">
             <!-- Desktop timeline line -->
             <div
@@ -823,7 +839,12 @@ onBeforeUnmount(() => {
             <img
               v-if="serviceCtaBackgroundImageUrl"
               :src="serviceCtaBackgroundImageUrl"
-              :alt="text(serviceCtaBackgroundImage.alternativeText, serviceCta.title)"
+              :alt="
+                text(
+                  serviceCtaBackgroundImage.alternativeText,
+                  serviceCta.title,
+                )
+              "
               class="absolute inset-0 h-full w-full object-cover opacity-20"
             />
 
@@ -836,10 +857,7 @@ onBeforeUnmount(() => {
             <div class="relative mx-auto max-w-[760px]">
               <h2 class="text-white">
                 {{
-                  text(
-                    serviceCta.title,
-                    "Ready to Move This Service Forward?",
-                  )
+                  text(serviceCta.title, "Ready to Move This Service Forward?")
                 }}
               </h2>
 
