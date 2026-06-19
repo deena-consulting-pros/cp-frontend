@@ -704,7 +704,26 @@ onBeforeUnmount(() => {
         :class="{ 'is-visible': isSectionVisible('benefits') }"
       >
         <div class="mx-auto w-full max-w-[1440px]">
-          <h2 class="section-title text-center">The Core Benefits</h2>
+          <div class="text-center">
+            <p
+              v-if="text(serviceDetails?.benefitsEyebrow)"
+              class="eyebrow text-[#006c4f]"
+            >
+              {{ text(serviceDetails?.benefitsEyebrow) }}
+            </p>
+
+            <h2 class="section-title text-center">
+              {{ text(serviceDetails?.benefitsTitle, "The Core Benefits") }}
+            </h2>
+
+            <p
+              v-if="text(serviceDetails?.benefitsDescription)"
+              class="mx-auto mt-5 max-w-[720px] text-[#41484c]"
+            >
+              {{ text(serviceDetails?.benefitsDescription) }}
+            </p>
+          </div>
+
           <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <article
               v-for="card in displayBenefitCards"
@@ -720,9 +739,11 @@ onBeforeUnmount(() => {
                   class="h-6 w-6"
                 />
               </span>
+
               <h3 class="text-xl font-bold text-[#001c2a]">
                 {{ card.title }}
               </h3>
+
               <p class="mt-3 text-base leading-7 text-[#41484c]">
                 {{ card.description }}
               </p>
