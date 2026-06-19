@@ -1,4 +1,4 @@
-import { normalizeAbsoluteUrl } from '~/utils/schema'
+import { isLocalhostUrl, normalizeAbsoluteUrl } from '~/utils/schema'
 import type { GlobalSettings } from '~/types/global'
 
 interface SeoDefaults {
@@ -65,8 +65,12 @@ export const useSeoDefaults = (): SeoDefaults => {
   const fallbackSiteUrl = normalizeAbsoluteUrl(requestUrl.origin) || 'http://localhost:3000'
   const configuredSiteUrl = normalizeAbsoluteUrl(config.public.siteUrl)
 
+  const siteUrl = configuredSiteUrl && !isLocalhostUrl(configuredSiteUrl)
+    ? configuredSiteUrl
+    : fallbackSiteUrl
+
   return {
-    siteUrl: configuredSiteUrl || fallbackSiteUrl,
+    siteUrl,
     siteName: pickFirst(global?.siteName, config.public.siteName, 'Consulting Pros'),
     siteDescription: pickFirst(global?.siteDescription, config.public.siteDescription),
     siteLogo: pickFirst(global?.siteLogo, config.public.siteLogo),

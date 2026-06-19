@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import {
     buildBreadcrumbSchema,
-    buildOrganizationSchema,
     buildWebPageSchema,
-    normalizeAbsoluteUrl,
-    sanitizeSchemaUrl,
 } from "~/utils/schema";
 
 interface StrapiRecord {
@@ -30,7 +27,8 @@ const slug = computed(() =>
 );
 
 const defaults = useSeoDefaults();
-const { buildApiUrl, toMediaUrl } = useStrapi();
+const { organizationSchema, siteUrl } = useOrganizationSchema();
+const { buildApiUrl } = useStrapi();
 
 const unwrap = (value: unknown): Record<string, unknown> => {
     if (!value || typeof value !== "object") return {};
@@ -170,41 +168,31 @@ const { canonicalUrl } = usePageMeta({
     nofollow: legalPage.value.seo.nofollow,
 });
 
-const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || "";
-const siteName = defaults.siteName || "Consulting Pros";
-const pageUrl = `${siteUrl}${canonicalPath.value}`;
+const pageUrl = `${siteUrl.value}${canonicalPath.value}`;
 const breadcrumbId = `${pageUrl}#breadcrumb`;
-
-const logoUrl = sanitizeSchemaUrl(toMediaUrl(defaults.siteLogo), siteUrl);
-
-const organizationSchema = buildOrganizationSchema({
-    siteUrl,
-    name: siteName,
-    logo: logoUrl || undefined,
-    description: defaults.siteDescription || undefined,
-});
 
 const webPageSchema = buildWebPageSchema({
     canonicalUrl,
-    siteUrl,
+    siteUrl: siteUrl.value,
     id: `${pageUrl}#webpage`,
     name: pageTitle.value,
     description: pageDescription.value,
     inLanguage: defaults.siteLanguage || "en",
     breadcrumbId,
+    publisher: `${siteUrl.value}/#organization`,
 });
 
 const breadcrumbSchema = buildBreadcrumbSchema({
     id: breadcrumbId,
     items: [
-        { name: "Home", url: siteUrl },
-        { name: "Legal", url: `${siteUrl}/legal` },
+        { name: "Home", url: siteUrl.value },
+        { name: "Legal", url: `${siteUrl.value}/legal` },
         { name: text(legalPage.value.title, "Legal Page"), url: pageUrl },
     ],
 });
 
 useJsonLd(
-    computed(() => [organizationSchema, webPageSchema, breadcrumbSchema]),
+    computed(() => [organizationSchema.value, webPageSchema, breadcrumbSchema]),
 );
 
 /* Content renderer helpers */

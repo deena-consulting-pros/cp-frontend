@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {
   buildBreadcrumbSchema,
-  buildOrganizationSchema,
+  buildFaqPageSchema,
+  buildServiceSchema,
   buildWebPageSchema,
   normalizeAbsoluteUrl,
   sanitizeSchemaUrl,
@@ -22,6 +23,7 @@ const slug = computed(() =>
 );
 
 const defaults = useSeoDefaults();
+const { organizationSchema, siteUrl } = useOrganizationSchema();
 const { buildApiUrl, resolveImageUrl } = useStrapi();
 
 const unwrap = (value: unknown): Record<string, unknown> => {
@@ -320,63 +322,73 @@ const { canonicalUrl } = usePageMeta({
   nofollow: unwrap(serviceEntry.value.seo).nofollow as boolean | undefined,
 });
 
-const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || "";
-const siteName = defaults.siteName || "Consulting Pros";
-const serviceUrl = `${siteUrl}${canonicalPath.value}`;
+const serviceUrl = `${siteUrl.value}${canonicalPath.value}`;
 const breadcrumbId = `${serviceUrl}#breadcrumb`;
-
-const logoUrl = sanitizeSchemaUrl(
-  resolveImageUrl(defaults.siteLogo, siteUrl),
-  siteUrl,
-);
-const organizationSchema = buildOrganizationSchema({
-  siteUrl,
-  name: siteName,
-  logo: logoUrl || undefined,
-  description: defaults.siteDescription || undefined,
-});
 
 const webPageSchema = buildWebPageSchema({
   canonicalUrl,
-  siteUrl,
+  siteUrl: siteUrl.value,
   id: `${serviceUrl}#webpage`,
   name: pageTitle.value,
   description: pageDescription.value,
   primaryImageOfPage:
-    sanitizeSchemaUrl(resolveImageUrl(featuredImage.value, siteUrl), siteUrl) ||
-    undefined,
+    sanitizeSchemaUrl(
+      resolveImageUrl(featuredImage.value, siteUrl.value),
+      siteUrl.value,
+    ) || undefined,
   inLanguage: defaults.siteLanguage || "en",
   breadcrumbId,
+  about: `${serviceUrl}#service`,
+  publisher: `${siteUrl.value}/#organization`,
 });
 
 const breadcrumbSchema = buildBreadcrumbSchema({
   id: breadcrumbId,
   items: [
-    { name: "Home", url: siteUrl },
-    { name: "Services", url: `${siteUrl}/services` },
+    { name: "Home", url: siteUrl.value },
+    { name: "Services", url: `${siteUrl.value}/services` },
     { name: text(serviceEntry.value.title, "Service"), url: serviceUrl },
   ],
 });
 
-const serviceSchema = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  "@id": `${serviceUrl}#service`,
+const serviceSchema = buildServiceSchema({
+  id: `${serviceUrl}#service`,
   name: text(serviceEntry.value.title),
   description: pageDescription.value,
-  provider: {
-    "@id": `${siteUrl}/#organization`,
-  },
   url: serviceUrl,
-};
+  serviceType:
+    text(serviceEntry.value.serviceCategory, serviceEntry.value.title) ||
+    undefined,
+  providerId: `${siteUrl.value}/#organization`,
+});
+
+const faqPageSchema = computed(() => {
+  const items = faqItems.value;
+  if (!items.length) {
+    return null;
+  }
+
+  return buildFaqPageSchema({
+    id: `${serviceUrl}#faq`,
+    mainEntity: items.map((item) => ({
+      question: item.question,
+      answer: item.answer,
+    })),
+  });
+});
 
 useJsonLd(
-  computed(() => [
-    organizationSchema,
-    webPageSchema,
-    breadcrumbSchema,
-    serviceSchema,
-  ]),
+  computed(() =>
+    [
+      organizationSchema.value,
+      webPageSchema,
+      breadcrumbSchema,
+      serviceSchema,
+      faqPageSchema.value,
+    ].filter((schema): schema is Record<string, unknown> =>
+      Boolean(schema),
+    ),
+  ),
 );
 
 const mainRef = ref<HTMLElement | null>(null);
@@ -694,8 +706,8 @@ onBeforeUnmount(() => {
         class="service-detail-reveal bg-[#001c2a] py-16 text-white lg:py-24"
         :class="{ 'is-visible': isSectionVisible('process') }"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-          <div class="mx-auto max-w-[760px] text-center">
+        <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="mx-auto max-w-190 text-center">
             <p
               v-if="text(serviceDetails?.processEyebrow)"
               class="eyebrow text-[#67fcc6]"

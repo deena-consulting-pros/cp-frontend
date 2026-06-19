@@ -1,19 +1,18 @@
 <script setup lang="ts">
-import { buildBreadcrumbSchema, buildOrganizationSchema, buildServicesSchema, buildWebPageSchema, normalizeAbsoluteUrl, sanitizeSchemaUrl } from '~/utils/schema'
+import { buildBreadcrumbSchema, buildFaqPageSchema, buildServiceItemListSchema, buildWebPageSchema, sanitizeSchemaUrl } from '~/utils/schema'
 
 const defaults = useSeoDefaults()
 const { resolveImageUrl } = useStrapi()
+const { organizationSchema, siteUrl } = useOrganizationSchema()
 const { services, pending, error } = await useServices()
 
 const servicesData = computed(() => services.value)
-const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || 'http://localhost:3000'
-const siteName = defaults.siteName || 'Consulting Pros'
-const servicesUrl = `${siteUrl}/services`
+const servicesUrl = `${siteUrl.value}/services`
 
 const pageTitle = servicesData.value.seo.metaTitle
   || defaults.defaultSeo.metaTitle
   || servicesData.value.hero.title
-  || `Services | ${siteName}`
+  || `Services | ${defaults.siteName || 'Consulting Pros'}`
 
 const pageDescription = servicesData.value.seo.metaDescription
   || defaults.defaultSeo.metaDescription
@@ -33,71 +32,39 @@ const { canonicalUrl } = usePageMeta({
   nofollow: servicesData.value.seo.nofollow ?? defaults.defaultSeo.nofollow,
   image: {
     url: pageImage,
-    alt: servicesData.value.hero.title || `${siteName} services`
+    alt: servicesData.value.hero.title || `${defaults.siteName || 'Consulting Pros'} services`
   }
 })
 
-const logoUrl = sanitizeSchemaUrl(resolveImageUrl(defaults.siteLogo, siteUrl), siteUrl)
-const sameAs = defaults.siteSameAs
-  .map((url) => sanitizeSchemaUrl(url, siteUrl, { allowExternal: true }))
-  .filter(Boolean)
 const breadcrumbId = `${servicesUrl}#breadcrumb`
-const catalogId = `${servicesUrl}#services`
-
-const countryCode = defaults.businessAddressCountry.trim().toUpperCase()
-const normalizedAddressCountry = countryCode === 'AE'
-  || countryCode === 'ARE'
-  || countryCode === 'UNITED ARAB EMIRATES'
-  || countryCode === 'UAE'
-  ? 'AE'
-  : (countryCode.length === 2 ? countryCode : '')
-
-const organizationSchema = buildOrganizationSchema({
-  siteUrl,
-  name: siteName,
-  logo: logoUrl || undefined,
-  description: defaults.siteDescription || undefined,
-  slogan: defaults.siteSlogan || undefined,
-  sameAs,
-  supportEmail: defaults.supportEmail || undefined,
-  supportPhone: defaults.supportPhone || undefined,
-  address: {
-    streetAddress: defaults.businessStreetAddress || undefined,
-    addressLocality: defaults.businessAddressLocality || undefined,
-    addressRegion: defaults.businessAddressRegion || undefined,
-    postalCode: defaults.businessPostalCode || undefined,
-    addressCountry: normalizedAddressCountry || undefined
-  }
-})
+const listId = `${servicesUrl}#services`
 
 const servicesPageSchemaBase = buildWebPageSchema({
   canonicalUrl,
-  siteUrl,
+  siteUrl: siteUrl.value,
+  type: 'CollectionPage',
   id: `${servicesUrl}#webpage`,
   name: pageTitle,
   description: pageDescription,
   inLanguage: defaults.siteLanguage || 'en',
-  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl), siteUrl) || logoUrl || undefined,
-  breadcrumbId
+  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl.value), siteUrl.value) || undefined,
+  breadcrumbId,
+  publisher: `${siteUrl.value}/#organization`
 })
 const servicesPageSchema = {
   ...servicesPageSchemaBase,
-  url: servicesUrl,
-  publisher: {
-    '@id': `${siteUrl}/#organization`
-  }
+  url: servicesUrl
 }
 
 const breadcrumbSchema = buildBreadcrumbSchema({
   id: breadcrumbId,
   items: [
-    { name: 'Home', url: siteUrl },
+    { name: 'Home', url: siteUrl.value },
     { name: 'Services', url: servicesUrl }
   ]
 })
 
-const hasServiceDetailRoute = false
-const catalogServiceItems = computed(() => (
+const serviceListItems = computed(() =>
   [...servicesData.value.serviceCards]
     .filter((item) => Boolean(item.title))
     .sort((a, b) => {
@@ -105,25 +72,41 @@ const catalogServiceItems = computed(() => (
       const bOrder = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER
       return aOrder - bOrder
     })
-    .map((item, index) => ({
+    .map((item) => ({
       id: item.slug || item.id,
       name: item.title,
       description: item.shortDescription || undefined,
-      position: index + 1,
-      url: hasServiceDetailRoute && item.slug ? `${servicesUrl}/${item.slug}` : undefined
+      url: item.slug ? `${servicesUrl}/${item.slug}` : undefined
     }))
-))
+)
 
-const servicesCatalogSchema = computed(() => buildServicesSchema({
-  siteUrl,
-  catalogId,
+const servicesItemListSchema = computed(() => buildServiceItemListSchema({
+  listId,
+  siteUrl: siteUrl.value,
   name: servicesData.value.servicesSection.title || 'Services',
   description: servicesData.value.seo.metaDescription
     || servicesData.value.servicesSection.subtitle
     || pageDescription
     || undefined,
-  serviceItems: catalogServiceItems.value
+  serviceItems: serviceListItems.value
 }))
+
+const faqPageSchema = computed(() => {
+  const faqs = (servicesData.value.faqs || [])
+    .filter((item) => item?.question?.trim() && item?.answer?.trim())
+
+  if (!faqs.length) {
+    return null
+  }
+
+  return buildFaqPageSchema({
+    id: `${servicesUrl}#faq`,
+    mainEntity: faqs.map((item) => ({
+      question: item.question.trim(),
+      answer: item.answer.trim()
+    }))
+  })
+})
 
 const hasValueCardsSection = computed(() => {
   const heading = servicesData.value.valueCardsSection
@@ -137,12 +120,15 @@ const hasValueCardsSection = computed(() => {
   return hasHeading || hasCards
 })
 
-useJsonLd(computed(() => [
-  organizationSchema,
-  servicesPageSchema,
-  breadcrumbSchema,
-  servicesCatalogSchema.value
-]))
+useJsonLd(computed(() =>
+  [
+    organizationSchema.value,
+    servicesPageSchema,
+    breadcrumbSchema,
+    servicesItemListSchema.value,
+    faqPageSchema.value
+  ].filter((schema): schema is Record<string, unknown> => Boolean(schema))
+))
 </script>
 
 <template>

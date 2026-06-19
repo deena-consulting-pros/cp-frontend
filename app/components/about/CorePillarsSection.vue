@@ -33,56 +33,97 @@ const sortedPillars = computed(() => {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 })
 
-const hasPillars = computed(() => sortedPillars.value.length > 0)
+type PillarVariant = 'large_dark' | 'tall_green' | 'small_light' | 'small_white'
 
-const variantOrder = ['large_dark', 'tall_green', 'small_light', 'small_white'] as const
+type DisplayPillar = AboutPillarItem & {
+  displayVariant: PillarVariant
+}
 
-const normalizedPillars = computed(() => {
-  const source = sortedPillars.value
-  if (!source.length) return []
+const validVariants = new Set<PillarVariant>([
+  'large_dark',
+  'tall_green',
+  'small_light',
+  'small_white'
+])
 
-  const used = new Set<number>()
-  const arranged: AboutPillarItem[] = []
+const resolveVariant = (variant?: string | null): PillarVariant | null => {
+  const key = String(variant || '').trim().toLowerCase() as PillarVariant
+  return validVariants.has(key) ? key : null
+}
 
-  for (const variant of variantOrder) {
-    const index = source.findIndex((pillar, i) => !used.has(i) && resolveVariant(pillar.variant) === variant)
-    if (index >= 0) {
-      used.add(index)
-      arranged.push(source[index] as AboutPillarItem)
-    }
-  }
-
-  source.forEach((pillar, i) => {
-    if (!used.has(i)) arranged.push(pillar)
-  })
-
-  return arranged
-})
-
-const resolveVariant = (variant?: string | null) => {
-  const key = String(variant || '').trim().toLowerCase()
-  if (key === 'large_dark' || key === 'tall_green' || key === 'small_light' || key === 'small_white') {
-    return key
-  }
+const fallbackVariantForIndex = (index: number): PillarVariant => {
+  if (index === 0) return 'large_dark'
+  if (index === 1) return 'tall_green'
+  if (index === 2) return 'small_light'
   return 'small_white'
 }
 
-const cardClassFor = (variant?: string | null) => {
-  const key = resolveVariant(variant)
+const displayPillars = computed<DisplayPillar[]>(() => {
+  return sortedPillars.value.map((pillar, index) => ({
+    ...pillar,
+    displayVariant: resolveVariant(pillar.variant) || fallbackVariantForIndex(index)
+  }))
+})
 
-  if (key === 'large_dark') {
-    return 'pillar-card-dark text-white lg:col-span-8 lg:row-span-1 md:col-span-2'
+const hasPillars = computed(() => displayPillars.value.length > 0)
+
+const layoutClassFor = (index: number, total: number) => {
+  if (total <= 1) {
+    return 'md:col-span-2 lg:col-span-12'
   }
 
-  if (key === 'tall_green') {
-    return 'pillar-card-green text-[#001c2a] lg:col-span-4 lg:row-span-2 md:col-span-1 md:row-span-2'
+  if (total === 2) {
+    return 'md:col-span-1 lg:col-span-6'
   }
 
-  if (key === 'small_light') {
-    return 'pillar-card-light text-[#001c2a] lg:col-span-4 lg:row-span-1 md:col-span-1'
+  if (total === 3) {
+    return 'md:col-span-1 lg:col-span-4'
   }
 
-  return 'pillar-card-white text-[#001c2a] lg:col-span-4 lg:row-span-1 md:col-span-1'
+  if (index === 0) {
+    return 'md:col-span-2 lg:col-span-8 lg:row-span-1'
+  }
+
+  if (index === 1) {
+    return 'md:col-span-1 md:row-span-2 lg:col-span-4 lg:row-span-2'
+  }
+
+  if (index === 2 || index === 3) {
+    return 'md:col-span-1 lg:col-span-4 lg:row-span-1'
+  }
+
+  const extraCount = total - 4
+  const extraIndex = index - 4
+  const lastRowCount = extraCount % 3 || 3
+  const lastRowStart = extraCount - lastRowCount
+
+  if (extraIndex >= lastRowStart) {
+    if (lastRowCount === 1) {
+      return 'md:col-span-2 lg:col-span-12'
+    }
+
+    if (lastRowCount === 2) {
+      return 'md:col-span-1 lg:col-span-6'
+    }
+  }
+
+  return 'md:col-span-1 lg:col-span-4'
+}
+
+const toneClassFor = (variant: PillarVariant) => {
+  if (variant === 'large_dark') {
+    return 'pillar-card-dark text-white'
+  }
+
+  if (variant === 'tall_green') {
+    return 'pillar-card-green text-[#001c2a]'
+  }
+
+  if (variant === 'small_light') {
+    return 'pillar-card-light text-[#001c2a]'
+  }
+
+  return 'pillar-card-white text-[#001c2a]'
 }
 
 const iconKeyFor = (pillar: AboutPillarItem) => {
@@ -131,18 +172,18 @@ onBeforeUnmount(() => observer?.disconnect())
         />
       </div>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2 lg:gap-7">
+      <div class="grid auto-rows-min grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-12 lg:gap-7">
         <component
           :is="pillar.link ? 'NuxtLink' : 'article'"
-          v-for="(pillar, index) in normalizedPillars"
+          v-for="(pillar, index) in displayPillars"
           :key="pillar.id || `about-pillar-${index}`"
           :to="pillar.link || undefined"
           class="pillar-card group relative flex min-h-[16rem] flex-col overflow-hidden rounded-[1.8rem] p-7 md:min-h-[18rem] md:p-8 lg:min-h-[15.5rem]"
-          :class="[cardClassFor(pillar.variant), { 'is-visible': isVisible }]"
+          :class="[toneClassFor(pillar.displayVariant), layoutClassFor(index, displayPillars.length), { 'is-visible': isVisible }]"
           :style="{ '--card-delay': `${index * 100}ms` }"
         >
           <img
-            v-if="resolveVariant(pillar.variant) === 'large_dark' && hasImage(pillar)"
+            v-if="pillar.displayVariant === 'large_dark' && hasImage(pillar)"
             :src="pillar.image"
             :alt="pillar.title || 'Core pillar image'"
             class="pillar-image absolute inset-0 h-full w-full object-cover"
@@ -150,13 +191,13 @@ onBeforeUnmount(() => observer?.disconnect())
             decoding="async"
           >
           <div
-            v-if="resolveVariant(pillar.variant) === 'large_dark'"
+            v-if="pillar.displayVariant === 'large_dark'"
             class="absolute inset-0 bg-gradient-to-b from-[#001c2a]/30 via-[#001c2a]/55 to-[#001c2a]/88"
             aria-hidden="true"
           />
 
           <div class="relative z-[1] flex h-full flex-col">
-            <span class="pillar-icon mb-7 inline-flex h-14 w-14 items-center justify-center rounded-full" :class="resolveVariant(pillar.variant) === 'large_dark' ? 'bg-white/16 text-white' : 'bg-[#eaf7f2] text-[#006c4f]'" aria-hidden="true">
+            <span class="pillar-icon mb-7 inline-flex h-14 w-14 items-center justify-center rounded-full" :class="pillar.displayVariant === 'large_dark' ? 'bg-white/16 text-white' : 'bg-[#eaf7f2] text-[#006c4f]'" aria-hidden="true">
               <AppIcon
                 :icon-key="iconKeyFor(pillar)"
                 :title="pillar.title"
@@ -167,14 +208,14 @@ onBeforeUnmount(() => observer?.disconnect())
             <div class="mt-auto">
               <h3
                 class="text-[1.3rem] font-bold leading-[1.28] tracking-[-0.01em]"
-                :class="resolveVariant(pillar.variant) === 'large_dark' ? 'text-white' : 'text-[#001c2a]'"
+                :class="pillar.displayVariant === 'large_dark' ? 'text-white' : 'text-[#001c2a]'"
               >
                 {{ pillar.title }}
               </h3>
               <p
                 v-if="pillar.description"
                 class="mt-3 text-[0.98rem] leading-[1.78]"
-                :class="resolveVariant(pillar.variant) === 'large_dark' ? 'text-white/90' : 'text-slate-600'"
+                :class="pillar.displayVariant === 'large_dark' ? 'text-white/90' : 'text-slate-600'"
               >
                 {{ pillar.description }}
               </p>

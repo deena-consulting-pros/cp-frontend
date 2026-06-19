@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { buildBreadcrumbSchema, buildOrganizationSchema, buildWebPageSchema, normalizeAbsoluteUrl, sanitizeSchemaUrl } from '~/utils/schema'
+import { buildBreadcrumbSchema, buildFaqPageSchema, buildWebPageSchema, sanitizeSchemaUrl } from '~/utils/schema'
 
 const defaults = useSeoDefaults()
 const { resolveImageUrl } = useStrapi()
+const { organizationSchema, siteUrl } = useOrganizationSchema()
 const { contact, pending, error } = await useContact()
 const heroRef = ref<HTMLElement | null>(null)
 const formRef = ref<HTMLElement | null>(null)
@@ -19,14 +20,12 @@ const ctaVisible = ref(false)
 let sectionObserver: IntersectionObserver | null = null
 
 const contactData = computed(() => contact.value)
-const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || 'http://localhost:3000'
-const siteName = defaults.siteName || 'Consulting Pros'
-const contactUrl = `${siteUrl}/contact`
+const contactUrl = `${siteUrl.value}/contact`
 
 const pageTitle = contactData.value.seo.metaTitle
   || defaults.defaultSeo.metaTitle
   || contactData.value.hero.title
-  || `Contact Us | ${siteName}`
+  || `Contact Us | ${defaults.siteName || 'Consulting Pros'}`
 
 const pageDescription = contactData.value.seo.metaDescription
   || defaults.defaultSeo.metaDescription
@@ -45,91 +44,65 @@ const { canonicalUrl } = usePageMeta({
   nofollow: contactData.value.seo.nofollow ?? defaults.defaultSeo.nofollow,
   image: {
     url: contactData.value.seo.metaImage,
-    alt: contactData.value.hero.title || `${siteName} contact`
+    alt: contactData.value.hero.title || `${defaults.siteName || 'Consulting Pros'} contact`
   }
 })
 
-const logoUrl = sanitizeSchemaUrl(resolveImageUrl(defaults.siteLogo, siteUrl), siteUrl)
-const sameAs = defaults.siteSameAs
-  .map((url) => sanitizeSchemaUrl(url, siteUrl, { allowExternal: true }))
-  .filter(Boolean)
 const breadcrumbId = `${contactUrl}#breadcrumb`
-const contactCardEmail = contactData.value.contactInfoCards.find((card) => card.linkUrl.startsWith('mailto:'))?.linkUrl.replace(/^mailto:/i, '')
-const contactCardPhone = contactData.value.contactInfoCards.find((card) => card.linkUrl.startsWith('tel:'))?.linkUrl.replace(/^tel:/i, '')
-const supportEmail = defaults.supportEmail || contactCardEmail || undefined
-const supportPhone = defaults.supportPhone || contactCardPhone || undefined
-const countryCode = defaults.businessAddressCountry.trim().toUpperCase()
-const normalizedAddressCountry = countryCode === 'AE'
-  || countryCode === 'ARE'
-  || countryCode === 'UNITED ARAB EMIRATES'
-  || countryCode === 'UAE'
-  ? 'AE'
-  : (countryCode.length === 2 ? countryCode : '')
-
-const organizationSchema = buildOrganizationSchema({
-  siteUrl,
-  name: siteName,
-  logo: logoUrl || undefined,
-  description: defaults.siteDescription || undefined,
-  slogan: defaults.siteSlogan || undefined,
-  sameAs,
-  supportEmail,
-  supportPhone,
-  address: {
-    streetAddress: defaults.businessStreetAddress || undefined,
-    addressLocality: defaults.businessAddressLocality || undefined,
-    addressRegion: defaults.businessAddressRegion || undefined,
-    postalCode: defaults.businessPostalCode || undefined,
-    addressCountry: normalizedAddressCountry || undefined
-  }
-})
-const organizationSchemaWithContactPoint = {
-  ...organizationSchema,
-  ...(supportEmail || supportPhone
-    ? {
-        contactPoint: {
-          '@type': 'ContactPoint',
-          contactType: 'customer support',
-          ...(supportEmail ? { email: supportEmail } : {}),
-          ...(supportPhone ? { telephone: supportPhone } : {}),
-          areaServed: 'AE',
-          availableLanguage: 'English'
-        }
-      }
-    : {})
-}
 
 const contactPageSchemaBase = buildWebPageSchema({
   canonicalUrl,
-  siteUrl,
+  siteUrl: siteUrl.value,
   type: 'ContactPage',
   id: `${contactUrl}#webpage`,
   name: pageTitle,
   description: pageDescription,
   inLanguage: defaults.siteLanguage || 'en',
-  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(contactData.value.seo.metaImage, siteUrl), siteUrl) || logoUrl || undefined,
-  breadcrumbId
+  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(contactData.value.seo.metaImage, siteUrl.value), siteUrl.value) || undefined,
+  breadcrumbId,
+  publisher: `${siteUrl.value}/#organization`
 })
 const contactPageSchema = {
   ...contactPageSchemaBase,
   url: contactUrl,
-  publisher: {
-    '@id': `${siteUrl}/#organization`
-  },
   mainEntity: {
-    '@id': `${siteUrl}/#organization`
+    '@id': `${siteUrl.value}/#organization`
   }
 }
 
 const breadcrumbSchema = buildBreadcrumbSchema({
   id: breadcrumbId,
   items: [
-    { name: 'Home', url: siteUrl },
+    { name: 'Home', url: siteUrl.value },
     { name: 'Contact Us', url: contactUrl }
   ]
 })
 
-useJsonLd([organizationSchemaWithContactPoint, contactPageSchema, breadcrumbSchema])
+const faqPageSchema = computed(() => {
+  const faqs = (contactData.value.faqSection || [])
+    .filter((item) => item?.question?.trim() && item?.answer?.trim())
+
+  if (!faqs.length) {
+    return null
+  }
+
+  return buildFaqPageSchema({
+    id: `${contactUrl}#faq`,
+    mainEntity: faqs.map((item) => ({
+      question: item.question.trim(),
+      answer: item.answer.trim()
+    }))
+  })
+})
+
+useJsonLd(computed(() =>
+  [
+    organizationSchema.value,
+    contactPageSchema,
+    breadcrumbSchema,
+    faqPageSchema.value
+  ].filter((schema): schema is Record<string, unknown> => Boolean(schema))
+))
 
 onMounted(() => {
   const setAllVisible = () => {

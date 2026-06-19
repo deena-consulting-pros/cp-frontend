@@ -1,19 +1,18 @@
 <script setup lang="ts">
-import { buildBreadcrumbSchema, buildOrganizationSchema, buildWebPageSchema, normalizeAbsoluteUrl, sanitizeSchemaUrl } from '~/utils/schema'
+import { buildBreadcrumbSchema, buildWebPageSchema, normalizeAbsoluteUrl, sanitizeSchemaUrl } from '~/utils/schema'
 
 const defaults = useSeoDefaults()
 const { resolveImageUrl } = useStrapi()
+const { organizationSchema, siteUrl } = useOrganizationSchema()
 const { about, pending, error } = await useAbout()
 
 const aboutData = computed(() => about.value)
 const aboutHeroCards = computed(() => aboutData.value?.heroCards || [])
-const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || 'http://localhost:3000'
-const siteName = defaults.siteName || 'Consulting Pros'
 
 const pageTitle = aboutData.value.seo.metaTitle
   || defaults.defaultSeo.metaTitle
   || aboutData.value.hero.title
-  || `About | ${siteName}`
+  || `About | ${defaults.siteName || 'Consulting Pros'}`
 
 const pageDescription = aboutData.value.seo.metaDescription
   || defaults.defaultSeo.metaDescription
@@ -37,55 +36,34 @@ const { canonicalUrl } = usePageMeta({
   nofollow: aboutData.value.seo.nofollow ?? defaults.defaultSeo.nofollow,
   image: {
     url: pageImage,
-    alt: aboutData.value.hero.title || `${siteName} About`
+    alt: aboutData.value.hero.title || `${defaults.siteName || 'Consulting Pros'} About`
   }
 })
 
-const logoUrl = sanitizeSchemaUrl(resolveImageUrl(defaults.siteLogo, siteUrl), siteUrl)
-const sameAs = defaults.siteSameAs
-  .map((url) => sanitizeSchemaUrl(url, siteUrl, { allowExternal: true }))
-  .filter(Boolean)
-const breadcrumbId = `${siteUrl}/about#breadcrumb`
-
-const organizationSchema = buildOrganizationSchema({
-  siteUrl,
-  name: siteName,
-  logo: logoUrl || undefined,
-  description: defaults.siteDescription || undefined,
-  slogan: defaults.siteSlogan || undefined,
-  sameAs,
-  supportEmail: defaults.supportEmail || undefined,
-  supportPhone: defaults.supportPhone || undefined,
-  address: {
-    streetAddress: defaults.businessStreetAddress || undefined,
-    addressLocality: defaults.businessAddressLocality || undefined,
-    addressRegion: defaults.businessAddressRegion || undefined,
-    postalCode: defaults.businessPostalCode || undefined,
-    addressCountry: defaults.businessAddressCountry || undefined
-  }
-})
+const breadcrumbId = `${siteUrl.value}/about#breadcrumb`
 
 const aboutPageSchema = buildWebPageSchema({
   canonicalUrl,
-  siteUrl,
+  siteUrl: siteUrl.value,
   type: 'AboutPage',
-  id: `${siteUrl}/about#webpage`,
+  id: `${siteUrl.value}/about#webpage`,
   name: pageTitle,
   description: pageDescription,
   inLanguage: defaults.siteLanguage || 'en',
-  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl), siteUrl) || logoUrl || undefined,
-  breadcrumbId
+  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl.value), siteUrl.value) || undefined,
+  breadcrumbId,
+  publisher: `${siteUrl.value}/#organization`
 })
 
 const breadcrumbSchema = buildBreadcrumbSchema({
   id: breadcrumbId,
   items: [
-    { name: 'Home', url: siteUrl },
-    { name: 'About', url: `${siteUrl}/about` }
+    { name: 'Home', url: siteUrl.value },
+    { name: 'About', url: `${siteUrl.value}/about` }
   ]
 })
 
-useJsonLd([organizationSchema, aboutPageSchema, breadcrumbSchema])
+useJsonLd([organizationSchema.value, aboutPageSchema, breadcrumbSchema])
 </script>
 
 <template>

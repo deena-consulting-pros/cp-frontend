@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { buildOrganizationSchema, buildWebPageSchema, buildWebsiteSchema, normalizeAbsoluteUrl, sanitizeSchemaUrl } from '~/utils/schema'
+import { buildFaqPageSchema, buildWebPageSchema, buildWebsiteSchema, normalizeAbsoluteUrl, sanitizeSchemaUrl } from '~/utils/schema'
 
 const defaults = useSeoDefaults()
 const { resolveImageUrl } = useStrapi()
+const { organizationSchema, siteUrl } = useOrganizationSchema()
 const { homepage, pending, error } = await useHomepage()
 
-const siteUrl = normalizeAbsoluteUrl(defaults.siteUrl) || 'http://localhost:3000'
-const siteName = defaults.siteName || 'Consulting Pros'
 const homepageData = computed(() => homepage.value)
 
 const hasHomepageContent = computed(() => Boolean(
@@ -18,14 +17,14 @@ const hasHomepageContent = computed(() => Boolean(
 const pageTitle = homepageData.value.seo.metaTitle
   || defaults.defaultSeo.metaTitle
   || homepageData.value.hero.title
-  || `${siteName}${defaults.siteSlogan ? ` | ${defaults.siteSlogan}` : ''}`
+  || `${defaults.siteName || 'Consulting Pros'}${defaults.siteSlogan ? ` | ${defaults.siteSlogan}` : ''}`
 const pageDescription = homepageData.value.seo.metaDescription
   || defaults.defaultSeo.metaDescription
   || homepageData.value.hero.description
   || defaults.siteDescription
   || ''
 const canonicalPath = homepageData.value.seo.canonicalPath || defaults.defaultSeo.canonicalPath || '/'
-  const pageImage = homepageData.value.seo.metaImage
+const pageImage = homepageData.value.seo.metaImage
   || homepageData.value.hero.heroImage
   || defaults.defaultOgImage
   || defaults.defaultSeo.metaImage
@@ -40,58 +39,64 @@ const { canonicalUrl } = usePageMeta({
   nofollow: homepageData.value.seo.nofollow ?? defaults.defaultSeo.nofollow,
   image: {
     url: pageImage,
-    alt: homepageData.value.hero.title || siteName
+    alt: homepageData.value.hero.title || defaults.siteName || 'Consulting Pros'
   }
 })
 
-const logoUrl = sanitizeSchemaUrl(resolveImageUrl(defaults.siteLogo, siteUrl), siteUrl)
-const sameAs = defaults.siteSameAs
-  .map((url) => sanitizeSchemaUrl(url, siteUrl, { allowExternal: true }))
-  .filter(Boolean)
 const searchUrl = normalizeAbsoluteUrl(defaults.siteSearchUrl)
 
-const organizationSchema = buildOrganizationSchema({
-  siteUrl,
-  name: siteName,
-  logo: logoUrl || undefined,
-  description: defaults.siteDescription || undefined,
-  slogan: defaults.siteSlogan || undefined,
-  sameAs,
-  supportEmail: defaults.supportEmail || undefined,
-  supportPhone: defaults.supportPhone || undefined,
-  address: {
-    streetAddress: defaults.businessStreetAddress || undefined,
-    addressLocality: defaults.businessAddressLocality || undefined,
-    addressRegion: defaults.businessAddressRegion || undefined,
-    postalCode: defaults.businessPostalCode || undefined,
-    addressCountry: defaults.businessAddressCountry || undefined
-  }
-})
-
 const websiteSchema = buildWebsiteSchema({
-  siteUrl,
-  name: siteName,
+  siteUrl: siteUrl.value,
+  name: defaults.siteName || 'Consulting Pros',
   description: defaults.siteDescription || undefined,
   searchUrl: searchUrl.includes('{search_term_string}') ? searchUrl : undefined,
   navigation: [
-    {
-      name: 'Home',
-      url: siteUrl
-    }
+    { name: 'Home', url: siteUrl.value },
+    { name: 'About Us', url: `${siteUrl.value}/about` },
+    { name: 'Services', url: `${siteUrl.value}/services` },
+    { name: 'Contact Us', url: `${siteUrl.value}/contact` }
   ]
 })
 
 const webPageSchema = buildWebPageSchema({
   canonicalUrl,
-  siteUrl,
-  id: `${siteUrl}/#webpage`,
+  siteUrl: siteUrl.value,
+  id: `${siteUrl.value}/#webpage`,
   name: pageTitle,
   description: pageDescription,
   inLanguage: defaults.siteLanguage || 'en',
-  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl), siteUrl) || logoUrl || undefined
+  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl.value), siteUrl.value) || undefined
 })
 
-useJsonLd([organizationSchema, websiteSchema, webPageSchema])
+const faqPageSchema = computed(() => {
+  if (!hasHomepageContent.value) {
+    return null
+  }
+
+  const faqs = (homepageData.value.faqs || [])
+    .filter((item) => item?.question?.trim() && item?.answer?.trim())
+
+  if (!faqs.length) {
+    return null
+  }
+
+  return buildFaqPageSchema({
+    id: `${canonicalUrl}#faq`,
+    mainEntity: faqs.map((item) => ({
+      question: item.question.trim(),
+      answer: item.answer.trim()
+    }))
+  })
+})
+
+useJsonLd(computed(() =>
+  [
+    organizationSchema.value,
+    websiteSchema,
+    webPageSchema,
+    faqPageSchema.value
+  ].filter((schema): schema is Record<string, unknown> => Boolean(schema))
+))
 </script>
 
 <template>
@@ -119,7 +124,7 @@ useJsonLd([organizationSchema, websiteSchema, webPageSchema])
         v-else-if="!hasHomepageContent"
         class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
-        <h1 class="text-2xl font-semibold text-slate-900">{{ siteName }}</h1>
+        <h1 class="text-2xl font-semibold text-slate-900">{{ defaults.siteName || 'Consulting Pros' }}</h1>
         <p class="mt-2 text-sm text-slate-600">
           We're updating our content. Please check back soon.
         </p>

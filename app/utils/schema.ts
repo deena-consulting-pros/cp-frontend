@@ -12,6 +12,8 @@ export interface OrganizationSchemaInput {
   description?: string
   slogan?: string
   sameAs?: string[]
+  email?: string
+  telephone?: string
   supportEmail?: string
   supportPhone?: string
   address?: {
@@ -38,9 +40,11 @@ export interface WebPageSchemaInput {
   description?: string
   inLanguage?: string
   primaryImageOfPage?: string
-  type?: 'WebPage' | 'AboutPage' | 'ContactPage'
+  type?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage'
   id?: string
   breadcrumbId?: string
+  about?: string
+  publisher?: string
 }
 
 export interface SchemaBreadcrumbItem {
@@ -53,25 +57,45 @@ export interface BreadcrumbSchemaInput {
   items: SchemaBreadcrumbItem[]
 }
 
-export interface ServicesSchemaItemInput {
+export interface ServiceListItemInput {
   id: string
   name: string
   description?: string
-  position?: number
   url?: string
 }
 
-export interface ServicesSchemaInput {
+export interface ServiceItemListSchemaInput {
+  listId: string
   siteUrl: string
-  catalogId: string
   name: string
   description?: string
-  serviceItems: ServicesSchemaItemInput[]
+  serviceItems: ServiceListItemInput[]
 }
 
 const trimSlashes = (value: string) => value.replace(/\/+$/, '')
 const trim = (value?: string | null) => typeof value === 'string' ? value.trim() : ''
 const isLocalhostHost = (value: string) => /(^|\.)localhost$|^127\.|^0\.0\.0\.0$|^::1$/i.test(value)
+
+export const isLocalhostUrl = (value?: string | null): boolean => {
+  const normalized = normalizeAbsoluteUrl(value)
+  if (!normalized) {
+    return false
+  }
+
+  try {
+    return isLocalhostHost(new URL(normalized).hostname)
+  } catch {
+    return false
+  }
+}
+
+const normalizeCountryCode = (value?: string | null) => {
+  const code = trim(value).toUpperCase()
+  if (code === 'AE' || code === 'ARE' || code === 'UNITED ARAB EMIRATES' || code === 'UAE') {
+    return 'AE'
+  }
+  return code.length === 2 ? code : ''
+}
 
 export const normalizeAbsoluteUrl = (value?: string | null) => {
   const trimmed = trim(value)
@@ -136,17 +160,32 @@ export const buildOrganizationSchema = (input: OrganizationSchemaInput): JsonLdR
     organization.slogan = input.slogan
   }
 
+  if (input.email) {
+    organization.email = input.email
+  }
+
+  if (input.telephone) {
+    organization.telephone = input.telephone
+  }
+
   if (input.sameAs?.length) {
     organization.sameAs = input.sameAs
   }
 
   if (input.address) {
-    const hasAddressData = Object.values(input.address).some((value) => Boolean(value))
+    const normalizedAddress = {
+      ...input.address,
+      addressCountry: input.address.addressCountry
+        ? normalizeCountryCode(input.address.addressCountry)
+        : undefined
+    }
+
+    const hasAddressData = Object.values(normalizedAddress).some((value) => Boolean(value))
 
     if (hasAddressData) {
       organization.address = {
         '@type': 'PostalAddress',
-        ...input.address
+        ...normalizedAddress
       }
     }
   }
@@ -216,9 +255,16 @@ export const buildWebPageSchema = (input: WebPageSchemaInput): JsonLdRecord => {
     name: input.name,
     isPartOf: {
       '@id': `${input.siteUrl}/#website`
-    },
-    about: {
-      '@id': `${input.siteUrl}/#organization`
+    }
+  }
+
+  webPage.about = {
+    '@id': input.about || `${input.siteUrl}/#organization`
+  }
+
+  if (input.publisher) {
+    webPage.publisher = {
+      '@id': input.publisher
     }
   }
 
@@ -258,22 +304,98 @@ export const buildBreadcrumbSchema = (input: BreadcrumbSchemaInput): JsonLdRecor
   }))
 })
 
-export const buildServicesSchema = (input: ServicesSchemaInput): JsonLdRecord => ({
+export const buildServiceItemListSchema = (input: ServiceItemListSchemaInput): JsonLdRecord => ({
   '@context': 'https://schema.org',
-  '@type': 'OfferCatalog',
-  '@id': input.catalogId,
+  '@type': 'ItemList',
+  '@id': input.listId,
   name: input.name,
   ...(input.description ? { description: input.description } : {}),
-  itemListElement: input.serviceItems.map((service) => ({
-    '@type': 'Offer',
-    itemOffered: {
+  itemListElement: input.serviceItems.map((service, index) => {
+    const serviceItem: JsonLdRecord = {
       '@type': 'Service',
+      '@id': service.url ? `${service.url}#service` : `${input.siteUrl}/#service-${service.id}`,
       name: service.name,
-      ...(service.description ? { description: service.description } : {}),
-      ...(service.url ? { url: service.url } : {}),
       provider: {
         '@id': `${input.siteUrl}/#organization`
       }
+    }
+
+    if (service.description) {
+      serviceItem.description = service.description
+    }
+
+    if (service.url) {
+      serviceItem.url = service.url
+    }
+
+    return {
+      '@type': 'ListItem',
+      position: index + 1,
+      item: serviceItem
+    }
+  })
+})
+
+export interface ServiceSchemaInput {
+  id: string
+  name: string
+  url: string
+  description?: string
+  serviceType?: string
+  providerId?: string
+  areaServed?: string | string[]
+}
+
+export const buildServiceSchema = (input: ServiceSchemaInput): JsonLdRecord => {
+  const service: JsonLdRecord = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': input.id,
+    name: input.name,
+    url: input.url
+  }
+
+  if (input.description) {
+    service.description = input.description
+  }
+
+  if (input.serviceType) {
+    service.serviceType = input.serviceType
+  }
+
+  if (input.providerId) {
+    service.provider = {
+      '@id': input.providerId
+    }
+  }
+
+  if (input.areaServed) {
+    service.areaServed = input.areaServed
+  }
+
+  return service
+}
+
+export interface FaqSchemaItemInput {
+  question: string
+  answer: string
+}
+
+export interface FaqPageSchemaInput {
+  id: string
+  mainEntity: FaqSchemaItemInput[]
+}
+
+export const buildFaqPageSchema = (input: FaqPageSchemaInput): JsonLdRecord => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': input.id,
+  mainEntity: input.mainEntity.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
     }
   }))
 })
