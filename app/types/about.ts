@@ -118,6 +118,7 @@ export interface AboutExpertItem {
   image: unknown
   iconKey: string
   order: number
+  isActive?: boolean
 }
 
 export interface AboutFinalCtaButton {

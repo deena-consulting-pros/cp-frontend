@@ -418,13 +418,15 @@ const normalizeExperts = (value: unknown): AboutExpertItem[] => {
         id: String(source.id ?? `about-expert-${index}`),
         title: pickText(source.title as string, source.name as string),
         role: pickText(source.role as string, source.category as string),
-        description: pickText(source.description as string),
+        description: pickText(source.description as string, source.bio as string),
         image: source.image || null,
         iconKey: resolveIconKey(source.iconKey),
-        order: typeof source.order === 'number' ? source.order : index
+        order: typeof source.order === 'number' ? source.order : index,
+        isActive: typeof source.isActive === 'boolean' ? source.isActive : true
       }
     })
-    .filter(item => Boolean(item.title || item.role || item.description))
+    .filter(item => Boolean(item.title || item.role || item.description || item.image))
+    .filter(item => item.isActive !== false)
     .sort((a, b) => a.order - b.order)
 }
 
