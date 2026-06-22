@@ -57,7 +57,7 @@ const hasClickableUrl = (url: string) => Boolean(url && url !== '#')
           <NuxtLink
             v-if="hasClickableUrl(item.url)"
             :to="item.url"
-            class="marquee-item mx-8 inline-flex shrink-0 items-center justify-center text-3xl font-extrabold uppercase leading-none tracking-[0.08em] text-slate-300/90 transition-colors duration-300 md:mx-10 md:text-4xl"
+            class="marquee-item mx-6 inline-flex h-20 w-[280px] shrink-0 items-center justify-center rounded-2xl px-6 py-4 text-3xl font-extrabold uppercase leading-none tracking-[0.08em] text-slate-300/90 transition-[background-color,transform] duration-300 hover:bg-slate-100 md:mx-8 md:w-[320px]"
             :target="shouldOpenNewTab(item.url) ? '_blank' : undefined"
             :rel="shouldOpenNewTab(item.url) ? 'noopener noreferrer' : undefined"
           >
@@ -65,9 +65,9 @@ const hasClickableUrl = (url: string) => Boolean(url && url !== '#')
               v-if="item.logo"
               :src="item.logo"
               :alt="item.name || 'Trusted logo'"
-              :width="item.logoWidth || 160"
+              :width="item.logoWidth || 260"
               :height="item.logoHeight || 48"
-              class="trusted-logo h-10 w-auto object-contain transition-[filter,opacity,transform] duration-300 md:h-12"
+              class="trusted-logo max-h-12 max-w-[220px] w-full object-contain transition-[filter,opacity,transform] duration-300 md:max-h-14 md:max-w-[260px]"
               loading="lazy"
               decoding="async"
             >
@@ -76,15 +76,15 @@ const hasClickableUrl = (url: string) => Boolean(url && url !== '#')
 
           <div
             v-else
-            class="marquee-item mx-8 inline-flex shrink-0 items-center justify-center text-3xl font-extrabold uppercase leading-none tracking-[0.08em] text-slate-300/90 transition-colors duration-300 md:mx-10 md:text-4xl"
+            class="marquee-item mx-6 inline-flex h-20 w-[280px] shrink-0 items-center justify-center rounded-2xl px-6 py-4 text-3xl font-extrabold uppercase leading-none tracking-[0.08em] text-slate-300/90 transition-[background-color,transform] duration-300 hover:bg-slate-100 md:mx-8 md:w-[320px]"
           >
             <img
               v-if="item.logo"
               :src="item.logo"
               :alt="item.name || 'Trusted logo'"
-              :width="item.logoWidth || 160"
+              :width="item.logoWidth || 260"
               :height="item.logoHeight || 48"
-              class="trusted-logo h-10 w-auto object-contain transition-[filter,opacity,transform] duration-300 md:h-12"
+              class="trusted-logo max-h-12 max-w-[220px] w-full object-contain transition-[filter,opacity,transform] duration-300 md:max-h-14 md:max-w-[260px]"
               loading="lazy"
               decoding="async"
             >
@@ -128,13 +128,13 @@ const hasClickableUrl = (url: string) => Boolean(url && url !== '#')
 }
 
 .trusted-logo {
-  opacity: 0.85;
-  filter: grayscale(1) contrast(0.95) brightness(0.78);
+  opacity: 0.72;
+  filter: grayscale(1) contrast(1.05) brightness(0.72);
 }
 
 .marquee-item:hover .trusted-logo {
   opacity: 1;
-  filter: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 28, 42, 0.22));
   transform: translateY(-1px);
 }
 
@@ -153,13 +153,7 @@ const hasClickableUrl = (url: string) => Boolean(url && url !== '#')
 
 @media (max-width: 768px) {
   .marquee-track .marquee-item {
-    margin-left: 1.1rem;
-    margin-right: 1.1rem;
     font-size: 1.65rem;
-  }
-
-  .marquee-track .trusted-logo {
-    height: 2rem;
   }
 }
 
