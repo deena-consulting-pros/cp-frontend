@@ -119,6 +119,22 @@ const serviceDetails = computed(() =>
   unwrap(serviceEntry.value.serviceDetails),
 );
 
+const overviewRichContent = computed(() => {
+  const value = serviceDetails.value?.overviewRichDescriptionText;
+  if (Array.isArray(value) && value.length === 0) return null;
+  if (typeof value === "string" && !value.trim()) return null;
+  return value || null;
+});
+
+const overviewFallbackText = computed(() =>
+  text(
+    serviceDetails.value?.overviewDescription,
+    serviceEntry.value?.description,
+    serviceEntry.value?.shortDescription,
+    pageDescription.value,
+  ),
+);
+
 const heroPills = computed(() =>
   asArray(serviceDetails.value.textPill)
     .map((item, index) => ({
@@ -593,15 +609,15 @@ onBeforeUnmount(() => {
               }}
             </h2>
 
-            <p class="mt-5 text-[#41484c]">
-              {{
-                text(
-                  serviceDetails?.overviewDescription,
-                  serviceEntry.description,
-                  serviceEntry.shortDescription,
-                  pageDescription,
-                )
-              }}
+            <div
+              v-if="overviewRichContent"
+              class="service-overview-rich mt-5 text-[#41484c]"
+            >
+              <StrapiRichText :content="overviewRichContent" />
+            </div>
+
+            <p v-else-if="overviewFallbackText" class="mt-5 text-[#41484c]">
+              {{ overviewFallbackText }}
             </p>
           </div>
 
@@ -937,6 +953,78 @@ onBeforeUnmount(() => {
 
 .service-btn--mint:hover {
   box-shadow: 0 20px 38px rgba(103, 252, 198, 0.28);
+}
+
+.service-overview-rich :deep(p) {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.service-overview-rich :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.service-overview-rich :deep(a) {
+  color: #006c4f;
+  text-decoration: underline;
+  transition: color 0.25s ease;
+}
+
+.service-overview-rich :deep(a:hover) {
+  color: #004d38;
+}
+
+.service-overview-rich :deep(ul),
+.service-overview-rich :deep(ol) {
+  padding-left: 1.25rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.service-overview-rich :deep(ul) {
+  list-style-type: disc;
+}
+
+.service-overview-rich :deep(ol) {
+  list-style-type: decimal;
+}
+
+.service-overview-rich :deep(li) {
+  margin-bottom: 0.375rem;
+  line-height: 1.7;
+}
+
+.service-overview-rich :deep(strong) {
+  font-weight: 700;
+  color: #001c2a;
+}
+
+.service-overview-rich :deep(h2),
+.service-overview-rich :deep(h3),
+.service-overview-rich :deep(h4) {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  color: #001c2a;
+  line-height: 1.3;
+}
+
+.service-overview-rich :deep(h2) {
+  font-size: clamp(1.15rem, 1.6vw, 1.5rem);
+}
+
+.service-overview-rich :deep(h3) {
+  font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+}
+
+.service-overview-rich :deep(h4) {
+  font-size: 1rem;
+}
+
+.service-overview-rich :deep(blockquote) {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid #67fcc6;
+  color: #1f3340;
 }
 
 @keyframes serviceDetailFadeUp {
