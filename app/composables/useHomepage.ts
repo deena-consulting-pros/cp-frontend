@@ -387,6 +387,7 @@ const normalizePortfolioItems = (value: unknown, toMediaUrl: (url?: string | nul
       const order = typeof orderSource === 'number'
         ? orderSource
         : (typeof orderSource === 'string' && orderSource.trim() ? Number(orderSource) : undefined)
+      const isActive = typeof source.isActive === 'boolean' ? source.isActive : undefined
       const isFeatured = typeof source.isFeatured === 'boolean' ? source.isFeatured : undefined
 
       const normalized = {
@@ -400,6 +401,7 @@ const normalizePortfolioItems = (value: unknown, toMediaUrl: (url?: string | nul
         projectUrl: normalizeLink(source.projectUrl as string),
         buttonText: pickText(source.buttonText as string),
         order: Number.isFinite(order) ? order : undefined,
+        isActive,
         isFeatured
       }
 
@@ -411,8 +413,10 @@ const normalizePortfolioItems = (value: unknown, toMediaUrl: (url?: string | nul
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
 
-  const hasFeaturedFlag = mapped.some((item) => typeof item.isFeatured === 'boolean')
-  const featuredFiltered = hasFeaturedFlag ? mapped.filter((item) => item.isFeatured) : mapped
+  const hasActiveFlag = mapped.some((item) => typeof item.isActive === 'boolean')
+  const activeFiltered = hasActiveFlag ? mapped.filter((item) => item.isActive) : mapped
+  const hasFeaturedFlag = activeFiltered.some((item) => typeof item.isFeatured === 'boolean')
+  const featuredFiltered = hasFeaturedFlag ? activeFiltered.filter((item) => item.isFeatured) : activeFiltered
   const hasOrder = featuredFiltered.some((item) => typeof item.order === 'number')
 
   return hasOrder

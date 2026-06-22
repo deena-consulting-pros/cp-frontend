@@ -137,6 +137,7 @@ export interface StrapiPortfolioItem {
   projectUrl?: string | null
   buttonText?: string | null
   order?: number | null
+  isActive?: boolean | null
   isFeatured?: boolean | null
   attributes?: StrapiPortfolioItem | null
 }
@@ -408,6 +409,7 @@ export interface HomepageData {
     projectUrl: string
     buttonText: string
     order?: number
+    isActive?: boolean
     isFeatured?: boolean
   }>
   testimonialsHeading: {

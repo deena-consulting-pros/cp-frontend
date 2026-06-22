@@ -14,6 +14,17 @@ const hasHomepageContent = computed(() => Boolean(
   || homepageData.value.hero.heroImage
 ))
 
+const portfolioItems = computed(() => homepageData.value.portfolioItems || [])
+
+const activePortfolioItems = computed(() =>
+  [...portfolioItems.value]
+    .filter((item) => item.title || item.shortDescription || item.thumbnail || item.featuredImage)
+    .filter((item) => item.isActive !== false)
+    .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER))
+)
+
+const hasPortfolioItems = computed(() => activePortfolioItems.value.length > 0)
+
 const pageTitle = homepageData.value.seo.metaTitle
   || defaults.defaultSeo.metaTitle
   || homepageData.value.hero.title
@@ -162,10 +173,16 @@ useJsonLd(computed(() =>
             :steps="homepageData.processSteps"
           />
         </SectionShell>
-        <SectionShell background="white" container="normal" section-class="overflow-x-clip py-24 lg:py-28" container-class="lg:px-10">
+        <SectionShell
+          v-if="hasPortfolioItems"
+          background="white"
+          container="normal"
+          section-class="overflow-x-clip py-24 lg:py-28"
+          container-class="lg:px-10"
+        >
           <PortfolioSection
             :heading="homepageData.portfolioHeading"
-            :items="homepageData.portfolioItems"
+            :items="activePortfolioItems"
             :button="homepageData.portfolioButton"
           />
         </SectionShell>
