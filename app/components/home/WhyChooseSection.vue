@@ -111,7 +111,7 @@ onBeforeUnmount(() => observer?.disconnect())
     </div>
 
     <div class="relative z-10 mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-      <div class="grid w-full grid-cols-1 items-start gap-12 md:gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(400px,560px)] lg:items-center lg:gap-12 xl:gap-14">
+      <div class="grid w-full grid-cols-1 items-start gap-12 md:gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(400px,560px)] lg:items-end lg:gap-12 xl:gap-14">
         <div>
           <SectionHeading
             id="why-choose-title"
