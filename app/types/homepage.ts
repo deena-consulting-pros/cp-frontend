@@ -271,6 +271,7 @@ export interface HomepageFeaturedService {
   featuredImage: string
   url: string
   buttonText: string
+  cardActionButtonText: string
   icon: string
   order: number
   isFeatured: boolean

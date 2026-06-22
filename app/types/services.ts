@@ -310,6 +310,7 @@ export interface StrapiServiceItem {
   order?: number | string | null
   isFeatured?: boolean | null
   ctaLink?: string | null
+  cardActionButtonText?: string | null
   attributes?: StrapiServiceItem | null
 }
 
@@ -452,6 +453,7 @@ export interface ServicesPageData {
     order?: number
     isFeatured?: boolean
     ctaLink: string
+    cardActionButtonText: string
     description: unknown
     serviceCategory: string
   }>

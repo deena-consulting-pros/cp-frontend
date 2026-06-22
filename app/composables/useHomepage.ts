@@ -179,6 +179,7 @@ const normalizeFeaturedServices = (value: unknown, toMediaUrl: (url?: string | n
           source.ctaText as string,
           source.linkText as string
         ),
+        cardActionButtonText: pickText(source.cardActionButtonText as string),
         icon: toMediaUrl(readMediaUrl(source.icon as StrapiMedia)),
         order: Number(source.order) || 0,
         isFeatured: typeof source.isFeatured === 'boolean' ? source.isFeatured : true

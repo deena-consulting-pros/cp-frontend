@@ -472,6 +472,7 @@ const normalizeServiceCards = (
         order,
         isFeatured: typeof source.isFeatured === 'boolean' ? source.isFeatured : undefined,
         ctaLink,
+        cardActionButtonText: pickText(source.cardActionButtonText as string),
         serviceCategory: normalizeServiceCategory(source.serviceCategory)
       }
 

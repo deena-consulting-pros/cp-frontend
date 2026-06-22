@@ -86,7 +86,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
           'featured-card border-slate-200 bg-slate-50'
         ]"
         :style="{ '--delay': cardDelay(i) }"
-        :aria-label="`Learn more about ${service.title}`"
+        :aria-label="`${service.cardActionButtonText || 'Learn more'} about ${service.title}`"
       >
         <span
           class="card-icon-wrap mb-5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-[#006c4f]"
@@ -109,7 +109,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
         </p>
 
         <span class="card-link inline-flex items-center gap-1.5 text-sm font-semibold text-[#006c4f]">
-          Learn More
+          {{ service.cardActionButtonText || 'Learn More' }}
           <svg
             class="card-arrow h-3.5 w-3.5"
             viewBox="0 0 24 24"

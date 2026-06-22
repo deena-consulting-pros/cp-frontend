@@ -35,6 +35,9 @@ const toCardCtaUrl = (service: ServiceCard) => {
   return fallbackCta
 }
 
+const toCardCtaLabel = (service: ServiceCard) =>
+  service?.cardActionButtonText?.trim() || defaultCtaLabel
+
 onMounted(() => {
   if (!import.meta.client) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -99,9 +102,9 @@ onBeforeUnmount(() => observer?.disconnect())
             v-if="isInternalUrl(toCardCtaUrl(service))"
             :to="toCardCtaUrl(service)"
             class="inline-flex items-center gap-2 text-sm font-semibold text-[#006c4f] transition-transform duration-250 motion-reduce:transition-none"
-            :aria-label="`${defaultCtaLabel} about ${service?.title || 'this service'}`"
+            :aria-label="`${toCardCtaLabel(service)} about ${service?.title || 'this service'}`"
           >
-            {{ defaultCtaLabel }}
+            {{ toCardCtaLabel(service) }}
             <span aria-hidden="true" class="cta-arrow transition-transform duration-250 motion-reduce:transition-none">&rarr;</span>
           </NuxtLink>
 
@@ -109,9 +112,9 @@ onBeforeUnmount(() => observer?.disconnect())
             v-else
             :href="toCardCtaUrl(service)"
             class="inline-flex items-center gap-2 text-sm font-semibold text-[#006c4f] transition-transform duration-250 motion-reduce:transition-none"
-            :aria-label="`${defaultCtaLabel} about ${service?.title || 'this service'}`"
+            :aria-label="`${toCardCtaLabel(service)} about ${service?.title || 'this service'}`"
           >
-            {{ defaultCtaLabel }}
+            {{ toCardCtaLabel(service) }}
             <span aria-hidden="true" class="cta-arrow transition-transform duration-250 motion-reduce:transition-none">&rarr;</span>
           </a>
         </article>
