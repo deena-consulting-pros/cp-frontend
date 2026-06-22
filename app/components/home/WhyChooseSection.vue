@@ -111,7 +111,7 @@ onBeforeUnmount(() => observer?.disconnect())
     </div>
 
     <div class="relative z-10 mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-      <div class="grid w-full grid-cols-1 items-center gap-12 md:gap-14 lg:grid-cols-2 lg:gap-20">
+      <div class="grid w-full grid-cols-1 items-start gap-12 md:gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(400px,560px)] lg:items-center lg:gap-12 xl:gap-14">
         <div>
           <SectionHeading
             id="why-choose-title"
@@ -153,21 +153,23 @@ onBeforeUnmount(() => observer?.disconnect())
           </ul>
         </div>
 
-        <div class="why-reveal-right" :class="{ 'is-visible': isVisible }">
+        <div class="why-reveal-right w-full max-w-[560px] lg:justify-self-end" :class="{ 'is-visible': isVisible }">
           <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-[0_28px_60px_rgba(0,0,0,0.28)] backdrop-blur-md md:p-8">
-            <img
-              v-if="image?.url"
-              :src="image.url"
-              :alt="imageAlt"
-              class="why-image h-[19rem] w-full rounded-2xl object-cover md:h-[24rem] lg:h-[28rem]"
-              loading="lazy"
-              decoding="async"
-            >
-            <div
-              v-else
-              class="h-[19rem] w-full rounded-2xl border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] md:h-[24rem] lg:h-[28rem]"
-              aria-hidden="true"
-            />
+            <div class="aspect-[1.08/1] w-full overflow-hidden rounded-2xl">
+              <img
+                v-if="image?.url"
+                :src="image.url"
+                :alt="imageAlt"
+                class="why-image h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              >
+              <div
+                v-else
+                class="h-full w-full rounded-2xl border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))]"
+                aria-hidden="true"
+              />
+            </div>
           </div>
         </div>
       </div>

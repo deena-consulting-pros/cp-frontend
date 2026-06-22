@@ -71,7 +71,7 @@ export const resolveIconKey = (value: unknown): string => {
 const ICON_KEY_TO_NAME: Record<string, HeroIconName> = {
   seo: 'seo',
   ppcmarketing: 'adsClick',
-  digitalmarketing: 'analytics',
+  digitalmarketing: 'adsClick',
   websitedevelopment: 'code',
   webdesign: 'palette',
   brandingstrategy: 'target',
@@ -79,10 +79,25 @@ const ICON_KEY_TO_NAME: Record<string, HeroIconName> = {
   growth: 'trendingUp',
   search: 'search',
   target: 'target',
+  bullseye: 'target',
+  goal: 'target',
+  aim: 'target',
+  objective: 'target',
   verified: 'verified',
+  checkmark: 'verified',
+  check: 'verified',
+  tick: 'verified',
+  approval: 'verified',
   route: 'route',
+  roadmap: 'route',
+  strategy: 'route',
+  plan: 'route',
   rocket: 'rocket',
+  launch: 'rocket',
+  startup: 'rocket',
   message: 'message',
+  chat: 'message',
+  communication: 'message',
   email: 'email',
   mail: 'email',
   envelope: 'email',
@@ -97,17 +112,47 @@ const ICON_KEY_TO_NAME: Record<string, HeroIconName> = {
   watch: 'clock',
   visible: 'visible',
   eye: 'visible',
+  view: 'visible',
   globe: 'globe',
+  world: 'globe',
+  international: 'globe',
   users: 'users',
+  people: 'users',
+  clients: 'users',
+  client: 'users',
+  customer: 'users',
+  customers: 'users',
+  team: 'users',
+  audience: 'users',
   shield: 'shield',
+  security: 'shield',
   settings: 'settings',
+  gear: 'settings',
   briefcase: 'briefcase',
   business: 'briefcase',
   work: 'briefcase',
+  consulting: 'briefcase',
   layers: 'layers',
   layer: 'layers',
+  services: 'layers',
   zap: 'zap',
-  checkcircle: 'checkCircle'
+  lightning: 'zap',
+  bolt: 'zap',
+  checkcircle: 'checkCircle',
+  quality: 'checkCircle',
+  megaphone: 'adsClick',
+  speaker: 'adsClick',
+  announcement: 'adsClick',
+  promotion: 'adsClick',
+  campaign: 'adsClick',
+  trendingup: 'trendingUp',
+  chartline: 'trendingUp',
+  graphline: 'trendingUp',
+  stats: 'stats',
+  statistics: 'stats',
+  chart: 'analytics',
+  graph: 'analytics',
+  report: 'analytics'
 }
 
 export const resolveHeroIcon = (
@@ -128,7 +173,7 @@ export const resolveHeroIcon = (
   if (source.includes('location') || source.includes('map') || source.includes('pin') || source.includes('marker') || source.includes('address')) return 'location'
   if (source.includes('clock') || source.includes('time') || source.includes('timer') || source.includes('watch') || source.includes('schedule')) return 'clock'
   if (source.includes('globe') || source.includes('global') || source.includes('onlinepresence') || source.includes('network')) return 'globe'
-  if (source.includes('users') || source.includes('audience') || source.includes('audiens') || source.includes('clients')) return 'users'
+  if (source.includes('users') || source.includes('audience') || source.includes('audiens') || source.includes('client') || source.includes('customer') || source.includes('team') || source.includes('centric')) return 'users'
   if (source.includes('shield') || source.includes('security') || source.includes('reliability') || source.includes('reliablity')) return 'shield'
   if (source.includes('settings') || source.includes('optimization') || source.includes('optimisation') || source.includes('gear')) return 'settings'
   if (source.includes('briefcase') || source.includes('business') || source.includes('consulting')) return 'briefcase'
@@ -136,12 +181,13 @@ export const resolveHeroIcon = (
   if (source.includes('checkcircle') || source.includes('qualitycheck') || source.includes('quality')) return 'checkCircle'
   if (source.includes('seo') || source.includes('ranking')) return 'seo'
   if (source.includes('search')) return 'search'
+  if (source.includes('marketing') || source.includes('promotion') || source.includes('campaign') || source.includes('advertising') || source.includes('megaphone')) return 'adsClick'
   if (source.includes('analytics') || source.includes('chart') || source.includes('report')) return 'analytics'
   if (source.includes('code') || source.includes('develop') || source.includes('website') || source.includes('web')) return 'code'
   if (source.includes('palette') || source.includes('design') || source.includes('ui') || source.includes('ux')) return 'palette'
-  if (source.includes('target') || source.includes('brand')) return 'target'
+  if (source.includes('target') || source.includes('brand') || source.includes('bullseye')) return 'target'
   if (source.includes('query') || source.includes('stats') || source.includes('insight')) return 'stats'
-  if (source.includes('verified') || source.includes('trust') || source.includes('method')) return 'verified'
+  if (source.includes('verified') || source.includes('trust') || source.includes('method') || source.includes('expert') || source.includes('professional')) return 'verified'
   if (source.includes('route') || source.includes('strategy') || source.includes('plan') || source.includes('roadmap')) return 'route'
   if (source.includes('rocket') || source.includes('launch') || source.includes('execution')) return 'rocket'
   if (source.includes('visible') || source.includes('eye') || source.includes('view')) return 'visible'
