@@ -653,7 +653,7 @@ export const useServices = async () => {
   ]
 
   const resolvedEndpoint = ref(candidateEndpoints[0])
-  const serviceCollectionEndpoint = buildApiUrl('/api/services?populate[featuredImage][populate]=*&populate[showcaseFeatures]=*&populate[showcaseButton]=*&sort[0]=order:asc')
+  const serviceCollectionEndpoint = buildApiUrl('/api/services?populate[featuredImage][populate]=*&populate[showcaseFeatures]=*&populate[showcaseButton]=*&populate[iconKey][fields][0]=iconKey&sort[0]=order:asc')
 
   const pageDataAsync = useAsyncData<StrapiServicesPageResponse, Error | null>('services-page-content', async () => {
     let lastError: unknown = null

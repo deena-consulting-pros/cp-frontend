@@ -25,8 +25,10 @@ const isExternalUrl = (url: string) => /^(https?:)?\/\//i.test(url) || url.start
 const isInternalUrl = (url: string) => Boolean(url) && !isExternalUrl(url)
 const fallbackCta = '/services'
 const defaultCtaLabel = 'Learn More'
+const fallbackIconKey = 'layers'
 
-const toIconKey = (value: unknown) => resolveIconKey(value)
+const iconKeyFor = (service: ServiceCard) =>
+  resolveIconKey(service?.iconKey) || service?.title || fallbackIconKey
 
 const toCardCtaUrl = (service: ServiceCard) => {
   const slug = service?.slug?.trim()
@@ -87,7 +89,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :style="{ '--card-delay': `${index * 95}ms` }"
         >
           <span class="service-icon-badge mb-6 inline-flex h-14 w-14 shrink-0 self-start items-center justify-center rounded-full bg-[#d8f8ea] text-[#006c4f]" style="width:56px;height:56px;border-radius:999px;">
-            <AppIcon :icon-key="toIconKey(service?.iconKey)" :title="service?.title" class="h-6 w-6" />
+            <AppIcon :icon-key="iconKeyFor(service)" :title="service?.title" class="h-6 w-6" />
           </span>
 
           <h3 class="mb-3 text-[1.32rem] leading-tight font-bold text-[#001c2a]">
