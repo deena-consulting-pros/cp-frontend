@@ -71,7 +71,7 @@ export const resolveIconKey = (value: unknown): string => {
 const ICON_KEY_TO_NAME: Record<string, HeroIconName> = {
   seo: 'seo',
   ppcmarketing: 'adsClick',
-  digitalmarketing: 'adsClick',
+  digitalmarketing: 'globe',
   websitedevelopment: 'code',
   webdesign: 'palette',
   brandingstrategy: 'target',

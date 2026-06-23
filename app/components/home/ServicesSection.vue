@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { HomepageData } from '~/types/homepage'
+import { resolveIconKey } from '~/utils/iconMap'
 
 type ServicesHeading = HomepageData['servicesHeading']
 type FeaturedService = HomepageData['featuredServices'][number]
@@ -20,6 +21,11 @@ const props = withDefaults(defineProps<{
 
 const sectionRef = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
+
+const fallbackIconKey = 'layers'
+
+const iconKeyFor = (service: FeaturedService) =>
+  resolveIconKey(service?.iconKey) || service?.title || fallbackIconKey
 
 const sortedServices = computed(() => {
   return [...(props.services || [])].sort((a, b) => a.order - b.order)
@@ -94,7 +100,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
           aria-hidden="true"
         >
           <AppIcon
-            :icon-key="service.iconKey"
+            :icon-key="iconKeyFor(service)"
             :title="service.title"
             class="h-6 w-6"
           />
