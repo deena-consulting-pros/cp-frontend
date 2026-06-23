@@ -139,7 +139,11 @@ const toRawRecord = (item: unknown): RawRecord => {
   return raw.attributes ?? (item as RawRecord)
 }
 
-const normalizeFeaturedServices = (value: unknown, toMediaUrl: (url?: string | null) => string): HomepageFeaturedService[] => {
+const normalizeFeaturedServices = (
+  value: unknown,
+  toMediaUrl: (url?: string | null) => string,
+  servicesIconMap?: Record<string, string>
+): HomepageFeaturedService[] => {
   if (!Array.isArray(value)) {
     return []
   }
@@ -148,6 +152,8 @@ const normalizeFeaturedServices = (value: unknown, toMediaUrl: (url?: string | n
     .map((item, index) => {
       const source = toRawRecord(item)
       const fallbackUrl = typeof source.slug === 'string' ? source.slug : ''
+      const slug = pickText(source.slug as string)
+      const resolvedIconKey = resolveIconKey(source.iconKey) || (slug && servicesIconMap?.[slug]) || ''
 
       const service: HomepageFeaturedService = {
         id: String((item as { id?: string | number })?.id ?? index),
@@ -167,8 +173,8 @@ const normalizeFeaturedServices = (value: unknown, toMediaUrl: (url?: string | n
           source.summary as string,
           source.subtitle as string
         ),
-        slug: pickText(source.slug as string),
-        iconKey: resolveIconKey(source.iconKey),
+        slug,
+        iconKey: resolvedIconKey,
         featuredImage: toMediaUrl(readMediaUrl(source.featuredImage as StrapiMedia)),
         url: normalizeLink(
           (source.url as string)
@@ -538,7 +544,7 @@ const normalizeTestimonials = (value: unknown, toMediaUrl: (url?: string | null)
     : activeFiltered
 }
 
-const normalizeHomepage = (response: StrapiHomepageResponse | null, toMediaUrl: (url?: string | null) => string): HomepageData => {
+const normalizeHomepage = (response: StrapiHomepageResponse | null, toMediaUrl: (url?: string | null) => string, servicesIconMap?: Record<string, string>): HomepageData => {
   const entry = mergeAttributes(response?.data)
   const hero = entry.hero || {}
   const seo = entry.seo || {}
@@ -607,7 +613,7 @@ const normalizeHomepage = (response: StrapiHomepageResponse | null, toMediaUrl: 
     introTitle: pickText(entry.introTitle),
     introDescription: pickText(entry.introDescription),
     servicesHeading: normalizeServicesHeading(entry.servicesHeading),
-    featuredServices: normalizeFeaturedServices(entry.featuredServices, toMediaUrl),
+    featuredServices: normalizeFeaturedServices(entry.featuredServices, toMediaUrl, servicesIconMap),
     cta: {
       title: pickText(ctaFromEntry.title, entry.ctaTitle),
       description: pickText(ctaFromEntry.description, entry.ctaDescription),
@@ -688,7 +694,7 @@ const readStatusCode = (error: unknown) => {
 export const useHomepage = async () => {
   const { buildApiUrl, toMediaUrl } = useStrapi()
   const candidateEndpoints = [
-    buildApiUrl('/api/homepage?populate[hero][populate]=*&populate[seo][populate]=*&populate[trustedLogos][populate]=*&populate[trustedHeading][populate]=*&populate[servicesHeading][populate]=*&populate[featuredServices][populate][iconKey][fields][0]=iconKey&populate[featuredServices][populate][featuredImage]=true&populate[featuredServices][populate][icon]=true&populate[whyChooseHeading][populate]=*&populate[whyChooseCards][populate]=*&populate[whyChooseImage][populate]=*&populate[whyChooseBackgroundImage][populate]=*&populate[processHeading][populate]=*&populate[processSteps][populate]=*&populate[portfolioHeading][populate]=*&populate[portfolioButton][populate]=*&populate[portfolioItems][populate]=*&populate[testimonialsHeading][populate]=*&populate[testimonials][populate]=*&populate[faqHeading][populate]=*&populate[faqSection][populate]=*&populate[finalCta][populate]=*'),
+    buildApiUrl('/api/homepage?populate[hero][populate]=*&populate[seo][populate]=*&populate[trustedLogos][populate]=*&populate[trustedHeading][populate]=*&populate[servicesHeading][populate]=*&populate[featuredServices][populate]=*&populate[whyChooseHeading][populate]=*&populate[whyChooseCards][populate]=*&populate[whyChooseImage][populate]=*&populate[whyChooseBackgroundImage][populate]=*&populate[processHeading][populate]=*&populate[processSteps][populate]=*&populate[portfolioHeading][populate]=*&populate[portfolioButton][populate]=*&populate[portfolioItems][populate]=*&populate[testimonialsHeading][populate]=*&populate[testimonials][populate]=*&populate[faqHeading][populate]=*&populate[faqSection][populate]=*&populate[finalCta][populate]=*'),
     buildApiUrl('/api/homepage?populate=*'),
     buildApiUrl('/api/homepage')
   ]
@@ -716,7 +722,35 @@ export const useHomepage = async () => {
     default: () => ({ data: null })
   })
 
-  const homepage = computed<HomepageData>(() => normalizeHomepage(data.value || null, toMediaUrl))
+  const servicesEndpoint = buildApiUrl('/api/services?populate[iconKey][fields][0]=iconKey&fields[0]=slug&fields[1]=title')
+
+  const { data: servicesData } = await useAsyncData<{ data?: Array<{ id?: string | number; slug?: string | null; iconKey?: unknown; attributes?: { slug?: string | null; iconKey?: unknown } | null }> | null } | null>('homepage-services-icon-map', async () => {
+    try {
+      return await $fetch(servicesEndpoint)
+    } catch {
+      return null
+    }
+  }, {
+    server: true,
+    default: () => null
+  })
+
+  const servicesIconMap = computed<Record<string, string>>(() => {
+    const items = servicesData.value?.data
+    if (!Array.isArray(items)) return {}
+
+    const map: Record<string, string> = {}
+    for (const item of items) {
+      const raw = (item as { attributes?: Record<string, unknown> | null }).attributes ?? (item as Record<string, unknown>)
+      const slug = typeof raw.slug === 'string' ? raw.slug.trim() : ''
+      if (!slug) continue
+      const iconKey = resolveIconKey(raw.iconKey)
+      if (iconKey) map[slug] = iconKey
+    }
+    return map
+  })
+
+  const homepage = computed<HomepageData>(() => normalizeHomepage(data.value || null, toMediaUrl, servicesIconMap.value))
 
   return {
     homepage,
