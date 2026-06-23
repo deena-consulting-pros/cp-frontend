@@ -1,5 +1,6 @@
 import type { HomepageData, HomepageFeaturedService, StrapiHomepageData, StrapiHomepageResponse, StrapiWhyChooseCard } from '~/types/homepage'
 import type { StrapiMedia } from '~/types/global'
+import { resolveIconKey } from '~/utils/iconMap'
 
 type RawRecord = Record<string, unknown>
 
@@ -167,7 +168,7 @@ const normalizeFeaturedServices = (value: unknown, toMediaUrl: (url?: string | n
           source.subtitle as string
         ),
         slug: pickText(source.slug as string),
-        iconKey: pickText(source.iconKey as string),
+        iconKey: resolveIconKey(source.iconKey),
         featuredImage: toMediaUrl(readMediaUrl(source.featuredImage as StrapiMedia)),
         url: normalizeLink(
           (source.url as string)
@@ -687,7 +688,7 @@ const readStatusCode = (error: unknown) => {
 export const useHomepage = async () => {
   const { buildApiUrl, toMediaUrl } = useStrapi()
   const candidateEndpoints = [
-    buildApiUrl('/api/homepage?populate[hero][populate]=*&populate[seo][populate]=*&populate[trustedLogos][populate]=*&populate[trustedHeading][populate]=*&populate[servicesHeading][populate]=*&populate[featuredServices][populate]=*&populate[whyChooseHeading][populate]=*&populate[whyChooseCards][populate]=*&populate[whyChooseImage][populate]=*&populate[whyChooseBackgroundImage][populate]=*&populate[processHeading][populate]=*&populate[processSteps][populate]=*&populate[portfolioHeading][populate]=*&populate[portfolioButton][populate]=*&populate[portfolioItems][populate]=*&populate[testimonialsHeading][populate]=*&populate[testimonials][populate]=*&populate[faqHeading][populate]=*&populate[faqSection][populate]=*&populate[finalCta][populate]=*'),
+    buildApiUrl('/api/homepage?populate[hero][populate]=*&populate[seo][populate]=*&populate[trustedLogos][populate]=*&populate[trustedHeading][populate]=*&populate[servicesHeading][populate]=*&populate[featuredServices][populate][iconKey][fields][0]=iconKey&populate[featuredServices][populate][featuredImage]=true&populate[featuredServices][populate][icon]=true&populate[whyChooseHeading][populate]=*&populate[whyChooseCards][populate]=*&populate[whyChooseImage][populate]=*&populate[whyChooseBackgroundImage][populate]=*&populate[processHeading][populate]=*&populate[processSteps][populate]=*&populate[portfolioHeading][populate]=*&populate[portfolioButton][populate]=*&populate[portfolioItems][populate]=*&populate[testimonialsHeading][populate]=*&populate[testimonials][populate]=*&populate[faqHeading][populate]=*&populate[faqSection][populate]=*&populate[finalCta][populate]=*'),
     buildApiUrl('/api/homepage?populate=*'),
     buildApiUrl('/api/homepage')
   ]
