@@ -436,14 +436,29 @@ watch(
     { immediate: true },
 );
 
+const normalizeHeadingText = (text: string): string =>
+    text.replace(/\s+/g, " ").trim();
+
 const handleTocClick = (link: TocLink) => {
     activeTocId.value = link.id;
-    if (import.meta.client) {
-        const el = document.querySelector(link.href);
-        if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+    if (!import.meta.client || !link.id) return;
+
+    let el = document.getElementById(link.id);
+    if (!el) {
+        // Fallback: heading may have changed or the ID may not have been
+        // injected; locate it by its normalized visible text.
+        const label = normalizeHeadingText(link.label);
+        const headings = Array.from(
+            mainRef.value?.querySelectorAll<HTMLElement>("h2, h3") || [],
+        );
+        el = headings.find(
+            (h) => normalizeHeadingText(h.textContent || "") === label,
+        );
     }
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", `#${link.id}`);
 };
 
 /* Scroll-based active state observer */
@@ -455,7 +470,9 @@ const observeTocTargets = async () => {
 
     tocObserver?.disconnect();
 
-    const selectors = tocLinks.value.map((l) => l.href).join(",");
+    const selectors = tocLinks.value
+        .map((l) => `#${CSS.escape(l.id)}`)
+        .join(",");
     if (!selectors) return;
 
     const nodes = Array.from(document.querySelectorAll<HTMLElement>(selectors));
