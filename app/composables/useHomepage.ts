@@ -691,6 +691,15 @@ const readStatusCode = (error: unknown) => {
   return source?.statusCode || source?.status || source?.response?.status || 0
 }
 
+type ServicesIconResponse = {
+  data?: Array<Record<string, unknown>> | null
+}
+
+type HomepageAsyncResult = {
+  homepage: StrapiHomepageResponse | null
+  servicesIconData: ServicesIconResponse | null
+}
+
 export const useHomepage = async () => {
   const { buildApiUrl, toMediaUrl } = useStrapi()
   const candidateEndpoints = [
@@ -699,15 +708,19 @@ export const useHomepage = async () => {
     buildApiUrl('/api/homepage')
   ]
   const resolvedEndpoint = ref(candidateEndpoints[0])
+  const servicesEndpoint = buildApiUrl('/api/services?populate[iconKey][fields][0]=iconKey&fields[0]=slug&fields[1]=title')
 
-  const { data, pending, error } = await useAsyncData<StrapiHomepageResponse, Error | null>('homepage-content', async () => {
+  // Single useAsyncData — both homepage and services icon map fetched inside the same handler
+  // to avoid calling useAsyncData a second time after an await (which can lose Nuxt context).
+  const { data, pending, error } = await useAsyncData<HomepageAsyncResult, Error | null>('homepage-content', async () => {
     let lastError: unknown = null
 
+    let homepageResponse: StrapiHomepageResponse | null = null
     for (const endpoint of candidateEndpoints) {
       try {
-        const response = await $fetch<StrapiHomepageResponse>(endpoint)
+        homepageResponse = await $fetch<StrapiHomepageResponse>(endpoint)
         resolvedEndpoint.value = endpoint
-        return response
+        break
       } catch (requestError) {
         lastError = requestError
         if (readStatusCode(requestError) !== 400) {
@@ -716,27 +729,27 @@ export const useHomepage = async () => {
       }
     }
 
-    throw lastError instanceof Error ? lastError : new Error('Failed to fetch homepage content.')
-  }, {
-    server: true,
-    default: () => ({ data: null })
-  })
-
-  const servicesEndpoint = buildApiUrl('/api/services?populate[iconKey][fields][0]=iconKey&fields[0]=slug&fields[1]=title')
-
-  const { data: servicesData } = await useAsyncData<{ data?: Array<{ id?: string | number; slug?: string | null; iconKey?: unknown; attributes?: { slug?: string | null; iconKey?: unknown } | null }> | null } | null>('homepage-services-icon-map', async () => {
-    try {
-      return await $fetch(servicesEndpoint)
-    } catch {
-      return null
+    if (!homepageResponse) {
+      throw lastError instanceof Error ? lastError : new Error('Failed to fetch homepage content.')
     }
+
+    // Non-critical services icon map enrichment — failure must not crash the homepage.
+    // Uses plain $fetch (no Nuxt composables) so it is safe inside the async handler.
+    let servicesIconData: ServicesIconResponse | null = null
+    try {
+      servicesIconData = await $fetch<ServicesIconResponse>(servicesEndpoint)
+    } catch {
+      // Silently ignored — icon fallback chain uses title-based fallback
+    }
+
+    return { homepage: homepageResponse, servicesIconData }
   }, {
     server: true,
-    default: () => null
+    default: () => ({ homepage: null, servicesIconData: null })
   })
 
   const servicesIconMap = computed<Record<string, string>>(() => {
-    const items = servicesData.value?.data
+    const items = data.value?.servicesIconData?.data
     if (!Array.isArray(items)) return {}
 
     const map: Record<string, string> = {}
@@ -750,7 +763,7 @@ export const useHomepage = async () => {
     return map
   })
 
-  const homepage = computed<HomepageData>(() => normalizeHomepage(data.value || null, toMediaUrl, servicesIconMap.value))
+  const homepage = computed<HomepageData>(() => normalizeHomepage(data.value?.homepage || null, toMediaUrl, servicesIconMap.value))
 
   return {
     homepage,
