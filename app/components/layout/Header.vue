@@ -323,7 +323,7 @@ onBeforeUnmount(() => {
         <template v-for="link in normalizedNavLinks" :key="`${link.label}-${link.url}`">
           <div
             v-if="isServicesNavLink(link) && hasServiceLinks && isInternalUrl(link.url)"
-            class="relative inline-block before:pointer-events-auto before:absolute before:left-1/2 before:top-full before:h-4 before:w-[280px] before:-translate-x-1/2 before:bg-transparent before:content-['']"
+            class="relative inline-block before:pointer-events-auto before:absolute before:left-0 before:top-full before:h-4 before:w-full before:bg-transparent before:content-['']"
             @mouseenter="openServicesDropdown"
             @mouseleave="closeServicesDropdown"
             @focusin="openServicesDropdown"
