@@ -21,6 +21,7 @@ const props = withDefaults(defineProps<{
 
 const sectionRef = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
+let fallbackTimer: ReturnType<typeof setTimeout> | null = null
 
 const fallbackIconKey = 'layers'
 
@@ -52,9 +53,20 @@ onMounted(() => {
     return
   }
 
+  // Safe fallback: never leave cards hidden if the observer fails to fire
+  // (common on real mobile devices where the section may already be in view).
+  fallbackTimer = window.setTimeout(() => {
+    isVisible.value = true
+    observer?.disconnect()
+  }, 1500)
+
   observer = new IntersectionObserver(
     (entries) => {
       if (entries[0]?.isIntersecting) {
+        if (fallbackTimer) {
+          clearTimeout(fallbackTimer)
+          fallbackTimer = null
+        }
         isVisible.value = true
         observer?.disconnect()
       }
@@ -65,7 +77,13 @@ onMounted(() => {
   if (sectionRef.value) observer.observe(sectionRef.value)
 })
 
-onBeforeUnmount(() => { observer?.disconnect() })
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  if (fallbackTimer) {
+    clearTimeout(fallbackTimer)
+    fallbackTimer = null
+  }
+})
 </script>
 
 <template>
@@ -86,7 +104,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
         v-for="(service, i) in sortedServices"
         :key="service.id"
         :to="serviceHref(service)"
-        class="service-card-reveal service-card flex flex-col rounded-[1.5rem] border p-8 no-underline shadow-sm"
+        class="service-card-reveal service-card flex flex-col rounded-[1.5rem] border p-8 no-underline shadow-sm opacity-100 translate-y-0 visible"
         :class="[
           isVisible ? 'is-visible' : '',
           'featured-card border-slate-200 bg-slate-50'
@@ -136,12 +154,20 @@ onBeforeUnmount(() => { observer?.disconnect() })
 
 <style scoped>
 .service-card-reveal {
-  opacity: 0;
-  transform: translateY(24px);
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
 }
 
-.service-card-reveal.is-visible {
-  animation: serviceFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0ms) both;
+@media (min-width: 768px) {
+  .service-card-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .service-card-reveal.is-visible {
+    animation: serviceFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0ms) both;
+  }
 }
 
 .service-card {

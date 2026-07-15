@@ -18,8 +18,9 @@ const sortedServices = computed(() => {
   return [...(props.services || [])].sort((a, b) => (a?.order ?? Number.MAX_SAFE_INTEGER) - (b?.order ?? Number.MAX_SAFE_INTEGER))
 })
 const sectionRef = ref<HTMLElement | null>(null)
-const isVisible = ref(false)
+const isVisible = ref(true)
 let observer: IntersectionObserver | null = null
+let fallbackTimer: ReturnType<typeof setTimeout> | null = null
 
 const isExternalUrl = (url: string) => /^(https?:)?\/\//i.test(url) || url.startsWith('mailto:') || url.startsWith('tel:')
 const isInternalUrl = (url: string) => Boolean(url) && !isExternalUrl(url)
@@ -41,23 +42,41 @@ const toCardCtaLabel = (service: ServiceCard) =>
   service?.cardActionButtonText?.trim() || defaultCtaLabel
 
 onMounted(() => {
-  if (!import.meta.client) return
+  if (!import.meta.client || !sectionRef.value) return
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     isVisible.value = true
     return
   }
 
+  // Safe fallback: never leave cards hidden if the observer fails to fire
+  // (e.g. on mobile viewports where the section may already be in view).
+  fallbackTimer = window.setTimeout(() => {
+    isVisible.value = true
+    observer?.disconnect()
+  }, 1500)
+
   observer = new IntersectionObserver((entries) => {
     if (entries[0]?.isIntersecting) {
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer)
+        fallbackTimer = null
+      }
       isVisible.value = true
       observer?.disconnect()
     }
   }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' })
 
-  if (sectionRef.value) observer.observe(sectionRef.value)
+  observer.observe(sectionRef.value)
 })
 
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  if (fallbackTimer) {
+    clearTimeout(fallbackTimer)
+    fallbackTimer = null
+  }
+})
 </script>
 
 <template>
@@ -69,7 +88,7 @@ onBeforeUnmount(() => observer?.disconnect())
     aria-labelledby="services-overview-title"
   >
     <div ref="sectionRef">
-      <div class="services-heading-reveal" :class="{ 'is-visible': isVisible }">
+      <div class="services-heading-reveal opacity-100 translate-y-0 visible" :class="{ 'is-visible': isVisible }">
         <SectionHeading
           id="services-overview-title"
           :heading="heading || undefined"
@@ -84,7 +103,7 @@ onBeforeUnmount(() => observer?.disconnect())
         <article
           v-for="(service, index) in sortedServices"
           :key="service.id"
-          class="service-overview-card flex h-full flex-col rounded-[1.6rem] border border-[#dbe5ec] bg-white p-7 shadow-[0_12px_28px_rgba(0,28,42,0.08)] md:p-8"
+          class="service-overview-card flex h-full flex-col rounded-[1.6rem] border border-[#dbe5ec] bg-white p-7 shadow-[0_12px_28px_rgba(0,28,42,0.08)] opacity-100 translate-y-0 visible md:p-8"
           :class="{ 'is-visible': isVisible }"
           :style="{ '--card-delay': `${index * 95}ms` }"
         >
@@ -128,16 +147,24 @@ onBeforeUnmount(() => observer?.disconnect())
 <style scoped>
 .services-heading-reveal,
 .service-overview-card {
-  opacity: 0;
-  transform: translateY(20px);
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.services-heading-reveal.is-visible {
-  animation: servicesFadeUp 0.72s ease-out both;
-}
+@media (min-width: 768px) {
+  .services-heading-reveal,
+  .service-overview-card {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 
-.service-overview-card.is-visible {
-  animation: servicesFadeUp 0.72s ease-out var(--card-delay, 0ms) both;
+  .services-heading-reveal.is-visible {
+    animation: servicesFadeUp 0.72s ease-out both;
+  }
+
+  .service-overview-card.is-visible {
+    animation: servicesFadeUp 0.72s ease-out var(--card-delay, 0ms) both;
+  }
 }
 
 .service-overview-card {
