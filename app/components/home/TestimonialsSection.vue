@@ -23,7 +23,13 @@ const isVisible = ref(false)
 const prefersReducedMotion = ref(false)
 let observer: IntersectionObserver | null = null
 
-const visibleTestimonials = computed(() => props.testimonials || [])
+const visibleTestimonials = computed(() =>
+  (props.testimonials || []).filter((item) =>
+    item &&
+    item.quote &&
+    item.clientName
+  )
+)
 const hasContent = computed(() => visibleTestimonials.value.length > 0)
 const marqueeTestimonials = computed(() => [...visibleTestimonials.value, ...visibleTestimonials.value])
 

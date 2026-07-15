@@ -527,7 +527,7 @@ const normalizeTestimonials = (value: unknown, toMediaUrl: (url?: string | null)
         isActive
       }
 
-      if (!testimonial.quote && !testimonial.clientName) {
+      if (!testimonial.quote || !testimonial.clientName) {
         return null
       }
 

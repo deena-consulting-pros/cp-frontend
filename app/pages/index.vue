@@ -25,6 +25,18 @@ const activePortfolioItems = computed(() =>
 
 const hasPortfolioItems = computed(() => activePortfolioItems.value.length > 0)
 
+const testimonials = computed(() => homepageData.value.testimonials || [])
+
+const activeTestimonials = computed(() =>
+  testimonials.value.filter((item) =>
+    item &&
+    item.quote &&
+    item.clientName
+  )
+)
+
+const hasTestimonials = computed(() => activeTestimonials.value.length > 0)
+
 const pageTitle = homepageData.value.seo.metaTitle
   || defaults.defaultSeo.metaTitle
   || homepageData.value.hero.title
@@ -186,10 +198,16 @@ useJsonLd(computed(() =>
             :button="homepageData.portfolioButton"
           />
         </SectionShell>
-        <SectionShell background="light" container="normal" section-class="overflow-x-clip py-20 md:py-24 lg:py-28" container-class="lg:px-10">
+        <SectionShell
+          v-if="hasTestimonials"
+          background="light"
+          container="normal"
+          section-class="overflow-x-clip py-20 md:py-24 lg:py-28"
+          container-class="lg:px-10"
+        >
           <TestimonialsSection
             :heading="homepageData.testimonialsHeading"
-            :testimonials="homepageData.testimonials"
+            :testimonials="activeTestimonials"
           />
         </SectionShell>
         <SectionShell background="light" container="normal" section-class="overflow-x-clip py-20 md:py-24 lg:py-28" container-class="lg:px-10">
