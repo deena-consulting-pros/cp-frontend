@@ -186,7 +186,6 @@ const breadcrumbSchema = buildBreadcrumbSchema({
     id: breadcrumbId,
     items: [
         { name: "Home", url: siteUrl.value },
-        { name: "Legal", url: `${siteUrl.value}/legal` },
         { name: text(legalPage.value.title, "Legal Page"), url: pageUrl },
     ],
 });
