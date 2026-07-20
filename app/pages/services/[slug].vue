@@ -351,6 +351,7 @@ const webPageSchema = buildWebPageSchema({
     sanitizeSchemaUrl(
       resolveImageUrl(featuredImage.value, siteUrl.value),
       siteUrl.value,
+      { allowExternal: true },
     ) || undefined,
   inLanguage: defaults.siteLanguage || "en",
   breadcrumbId,

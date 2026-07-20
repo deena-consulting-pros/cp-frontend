@@ -88,7 +88,7 @@ const webPageSchema = buildWebPageSchema({
   name: pageTitle,
   description: pageDescription,
   inLanguage: defaults.siteLanguage || 'en',
-  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl.value), siteUrl.value) || undefined
+  primaryImageOfPage: sanitizeSchemaUrl(resolveImageUrl(pageImage, siteUrl.value), siteUrl.value, { allowExternal: true }) || undefined
 })
 
 const faqPageSchema = computed(() => {

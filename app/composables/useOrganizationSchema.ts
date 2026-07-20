@@ -13,7 +13,7 @@ export const useOrganizationSchema = () => {
   const siteName = computed(() => defaults.siteName || 'Consulting Pros FZC')
 
   const logoUrl = computed(() =>
-    sanitizeSchemaUrl(resolveImageUrl(defaults.siteLogo, siteUrl.value), siteUrl.value),
+    sanitizeSchemaUrl(resolveImageUrl(defaults.siteLogo, siteUrl.value), siteUrl.value, { allowExternal: true }),
   )
 
   const sameAs = computed(() =>

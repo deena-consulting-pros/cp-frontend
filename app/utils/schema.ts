@@ -413,7 +413,7 @@ export const sanitizeSchemaUrl = (value: string, siteUrl: string, options?: { al
     }
 
     if (options?.allowExternal) {
-      return normalizedValue
+      return parsedValue.protocol === 'https:' ? normalizedValue : ''
     }
 
     const normalizedSiteUrl = normalizeAbsoluteUrl(siteUrl)
