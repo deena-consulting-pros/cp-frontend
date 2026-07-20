@@ -370,7 +370,7 @@ const breadcrumbSchema = buildBreadcrumbSchema({
 const serviceSchema = buildServiceSchema({
   id: `${serviceUrl}#service`,
   name: text(serviceEntry.value.title),
-  description: pageDescription.value,
+  description: text(serviceEntry.value.shortDescription, pageDescription.value),
   url: serviceUrl,
   serviceType:
     text(serviceEntry.value.serviceCategory, serviceEntry.value.title) ||
