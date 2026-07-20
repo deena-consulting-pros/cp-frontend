@@ -13,12 +13,15 @@ export interface SitemapUrlEntry {
   lastmod?: string
 }
 
-interface StrapiSeoComponent {
+export interface StrapiSeoComponent {
   noindex?: boolean | null
 }
 
-interface StrapiSlugRecord {
+export interface StrapiSlugRecord {
   slug?: string | null
+  title?: string | null
+  shortDescription?: string | null
+  description?: string | null
   updatedAt?: string | null
   publishedAt?: string | null
   seo?: StrapiSeoComponent | null
@@ -43,12 +46,12 @@ interface SitemapContentSource {
   routePrefix: string
 }
 
-const DYNAMIC_CONTENT_SOURCES: SitemapContentSource[] = [
+export const DYNAMIC_CONTENT_SOURCES: SitemapContentSource[] = [
   { collection: 'services', routePrefix: 'services' },
   { collection: 'legal-pages', routePrefix: 'legal' }
 ]
 
-const STATIC_PAGES: Array<{ path: string }> = [
+export const STATIC_PAGES: Array<{ path: string }> = [
   { path: '/' },
   { path: '/about' },
   { path: '/services' },
@@ -59,8 +62,8 @@ const PAGE_SIZE = 200
 const MAX_PAGES = 5
 
 const CACHE_KEY = 'sitemap:xml'
-const SUCCESS_TTL_MS = 10 * 60 * 1000
-const FAILURE_TTL_MS = 60 * 1000
+export const SUCCESS_TTL_MS = 10 * 60 * 1000
+export const FAILURE_TTL_MS = 60 * 1000
 
 interface SitemapCacheEntry {
   xml: string
@@ -84,13 +87,23 @@ export const resolveSiteOrigin = (): string => {
   }
 }
 
-const buildLoc = (origin: string, path: string): string => {
+export const buildLoc = (origin: string, path: string): string => {
   if (path === '/' || path === '') {
     return `${origin}/`
   }
 
   const normalized = path.startsWith('/') ? path : `/${path}`
   return `${origin}${normalized.replace(/\/+$/, '')}`
+}
+
+/**
+ * Single source of truth for dynamic (service/legal) entry URLs so the
+ * sitemap and llms.txt generators can never diverge on slug normalization
+ * or encoding.
+ */
+export const buildDynamicEntryUrl = (origin: string, routePrefix: string, slug: string): string => {
+  const normalizedSlug = slug.trim().replace(/^\/+|\/+$/g, '')
+  return buildLoc(origin, `/${routePrefix}/${encodeURIComponent(normalizedSlug)}`)
 }
 
 const toIsoDate = (value?: string | null): string | undefined => {
@@ -102,21 +115,52 @@ const toIsoDate = (value?: string | null): string | undefined => {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
-const isValidSlug = (slug?: string | null): slug is string =>
+export const isValidSlug = (slug?: string | null): slug is string =>
   typeof slug === 'string' && slug.trim().replace(/^\/+|\/+$/g, '').length > 0
 
-const logSitemapError = (source: string, error: unknown) => {
+/**
+ * Shared "is this record safe to publish a public URL for" predicate. Used by
+ * both the sitemap and llms.txt generators so the two never disagree on
+ * which records are indexable.
+ */
+export const isPublishedAndIndexable = (
+  record: { publishedAt?: string | null, seo?: StrapiSeoComponent | null },
+  globalNoindexFallback: boolean
+): boolean => {
+  if (!record.publishedAt) {
+    return false
+  }
+
+  const explicitNoindex = record.seo?.noindex
+  const isNoindexed = typeof explicitNoindex === 'boolean' ? explicitNoindex : globalNoindexFallback
+  return !isNoindexed
+}
+
+export const logStrapiFetchError = (context: string, source: string, error: unknown) => {
   const status = (error as { statusCode?: number, response?: { status?: number } })?.statusCode
     ?? (error as { response?: { status?: number } })?.response?.status
     ?? 'unknown'
-  console.error(`[sitemap] failed to load "${source}" from Strapi (status: ${status})`)
+  console.error(`[${context}] failed to load "${source}" from Strapi (status: ${status})`)
 }
 
-const fetchSlugCollection = async (strapiUrl: string, collection: string): Promise<StrapiSlugRecord[]> => {
+const logSitemapError = (source: string, error: unknown) => logStrapiFetchError('sitemap', source, error)
+
+/**
+ * `extraFields` lets callers (e.g. the llms.txt generator) pull additional
+ * plain fields such as `title`/`shortDescription` without duplicating the
+ * pagination/error-handling loop.
+ */
+export const fetchSlugCollection = async (
+  strapiUrl: string,
+  collection: string,
+  extraFields: string[] = []
+): Promise<StrapiSlugRecord[]> => {
   const records: StrapiSlugRecord[] = []
+  const baseFields = ['slug', 'updatedAt', 'publishedAt', ...extraFields]
+  const fieldsQuery = baseFields.map((field, index) => `fields[${index}]=${field}`).join('&')
 
   for (let page = 1; page <= MAX_PAGES; page++) {
-    const endpoint = `${strapiUrl}/api/${collection}?fields[0]=slug&fields[1]=updatedAt&fields[2]=publishedAt&populate[seo][fields][0]=noindex&pagination[page]=${page}&pagination[pageSize]=${PAGE_SIZE}`
+    const endpoint = `${strapiUrl}/api/${collection}?${fieldsQuery}&populate[seo][fields][0]=noindex&pagination[page]=${page}&pagination[pageSize]=${PAGE_SIZE}`
     const response = await $fetch<StrapiCollectionResponse>(endpoint)
     const pageData = Array.isArray(response?.data) ? response.data : []
     records.push(...pageData)
@@ -147,20 +191,12 @@ const toIndexableEntries = (
 
   for (const record of records) {
     // Strapi's public `find` already excludes drafts by default; this is a defensive backstop.
-    if (!record.publishedAt || !isValidSlug(record.slug)) {
+    if (!isValidSlug(record.slug) || !isPublishedAndIndexable(record, globalNoindexFallback)) {
       continue
     }
-
-    const explicitNoindex = record.seo?.noindex
-    const isNoindexed = typeof explicitNoindex === 'boolean' ? explicitNoindex : globalNoindexFallback
-    if (isNoindexed) {
-      continue
-    }
-
-    const slug = record.slug!.trim().replace(/^\/+|\/+$/g, '')
 
     entries.push({
-      loc: buildLoc(origin, `/${routePrefix}/${encodeURIComponent(slug)}`),
+      loc: buildDynamicEntryUrl(origin, routePrefix, record.slug!),
       lastmod: toIsoDate(record.updatedAt)
     })
   }
