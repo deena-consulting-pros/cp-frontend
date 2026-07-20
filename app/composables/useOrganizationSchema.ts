@@ -49,9 +49,7 @@ export const useOrganizationSchema = () => {
       slogan: defaults.siteSlogan || undefined,
       sameAs: sameAs.value,
       email: defaults.supportEmail || undefined,
-      telephone: defaults.supportPhone || undefined,
       supportEmail: defaults.supportEmail || undefined,
-      supportPhone: defaults.supportPhone || undefined,
       address: hasAddress.value
         ? {
             streetAddress: defaults.businessStreetAddress || undefined,
