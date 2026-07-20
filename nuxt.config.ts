@@ -1,12 +1,17 @@
 import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
 
+const siteLanguage = "en";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   app: {
     head: {
+      htmlAttrs: {
+        lang: siteLanguage,
+      },
       link: [
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
@@ -49,7 +54,7 @@ export default defineNuxtConfig({
       siteSameAs: "",
       supportEmail: "",
       supportPhone: "",
-      siteLanguage: "en",
+      siteLanguage,
       siteSearchUrl: "",
       businessStreetAddress: "",
       businessAddressLocality: "",
